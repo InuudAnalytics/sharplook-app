@@ -187,7 +187,7 @@ export default function EmailVerificationScreenSignup({ navigation, route }) {
                 </Text>
               </Pressable>
             )}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               className="flex-row gap-3 justify-center items-center mt-[50px] mb-8"
               onPress={async () => {
                 const phone = route?.params?.phone;
@@ -232,7 +232,7 @@ export default function EmailVerificationScreenSignup({ navigation, route }) {
               >
                 Verify with Phone Number instead
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <View className="flex-1" />
             <View className="mb-8">

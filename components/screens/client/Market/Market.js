@@ -155,7 +155,8 @@ export default function Market() {
   const fetch = async () => {
     setLoading(true);
     try {
-      const res = await HttpClient.get("/products/getAllProducts");
+      // const res = await HttpClient.get("/products/getAllProducts");
+      const res = await HttpClient.get("/products/getAllProductsRatings");
       setProducts(res.data.data || []);
     } catch (error) {
       const message = error.response?.data?.message || error.response?.message;

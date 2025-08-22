@@ -13,17 +13,15 @@ export const useChatNavigation = () => {
         receiverId,
         receiverName,
         vendorId,
-        showLoading = false, // Changed default to false
+        showLoading = false,
         onConnectionStart,
         onConnectionSuccess,
         onConnectionError,
       } = chatParams;
 
-      // Determine the actual roomId and receiverId
       let actualRoomId = roomId;
       let actualReceiverId = receiverId;
 
-      // If we have vendorId but no roomId, generate roomId
       if (vendorId && !roomId) {
         const userId = user?.id;
         if (userId) {
@@ -32,7 +30,6 @@ export const useChatNavigation = () => {
         }
       }
 
-      // If we have chat object with vendorId
       if (chatParams.chat?.vendorId) {
         const userId = user?.id;
         if (userId) {
@@ -50,19 +47,17 @@ export const useChatNavigation = () => {
         return;
       }
 
-      // ✅ NAVIGATE IMMEDIATELY - Don't wait for connection
       navigation.navigate("ChatDetailScreen", {
         roomId: actualRoomId,
         receiverId: actualReceiverId,
         receiverName: receiverName || chatParams.chat?.name || "Chat",
-        connectionEstablished: false, // Initially false
-        socket: null, // Let ChatDetail handle connection
+        connectionEstablished: false,
+        socket: null,
         vendorPhone: chatParams.vendorPhone,
         vendorAvatar: chatParams.vendorAvatar,
         ...options,
       });
 
-      // ✅ ESTABLISH CONNECTION IN BACKGROUND (non-blocking)
       (async () => {
         try {
           setIsConnecting(true);
@@ -71,16 +66,13 @@ export const useChatNavigation = () => {
             onConnectionStart();
           }
 
-          // Get existing connection or create new one
           const existingSocket = chatConnectionService.getSocket();
 
           if (existingSocket && chatConnectionService.isSocketConnected()) {
-            // Use existing connection
             if (onConnectionSuccess) {
               onConnectionSuccess({ socket: existingSocket });
             }
           } else {
-            // Establish new connection in background
             const connectionResult =
               await chatConnectionService.establishConnection(
                 user.id,
@@ -105,7 +97,6 @@ export const useChatNavigation = () => {
     [user]
   );
 
-  // ✅ OPTIMIZED VERSION WITH IMMEDIATE NAVIGATION
   const navigateToChatOptimized = useCallback(
     (navigation, chatParams, options = {}) => {
       const {
@@ -117,7 +108,6 @@ export const useChatNavigation = () => {
         vendorAvatar,
       } = chatParams;
 
-      // Calculate room and receiver IDs
       let actualRoomId = roomId;
       let actualReceiverId = receiverId;
 
@@ -142,7 +132,6 @@ export const useChatNavigation = () => {
         return;
       }
 
-      // ✅ IMMEDIATE NAVIGATION WITH OPTIMISTIC CONNECTION
       const existingSocket = chatConnectionService.getSocket();
       const isConnected =
         existingSocket && chatConnectionService.isSocketConnected();
@@ -158,7 +147,6 @@ export const useChatNavigation = () => {
         ...options,
       });
 
-      // Background connection establishment (if needed)
       if (!isConnected) {
         chatConnectionService
           .establishConnection(user.id, actualRoomId)
@@ -175,8 +163,8 @@ export const useChatNavigation = () => {
   }, []);
 
   return {
-    navigateToChat: navigateToChatOptimized, // Use optimized version
-    navigateToChatOriginal: navigateToChat, // Keep original as fallback
+    navigateToChat: navigateToChatOptimized,
+    navigateToChatOriginal: navigateToChat,
     navigateToChatList,
     isConnecting,
     isConnectedToRoom: chatConnectionService.isConnectedToRoom.bind(
@@ -189,13 +177,11 @@ export const useChatNavigation = () => {
   };
 };
 
-// ✅ ALTERNATIVE SUPER FAST VERSION
 export const useFastChatNavigation = () => {
   const { user } = useAuth();
 
   const navigateToChat = useCallback(
     (navigation, chatParams, options = {}) => {
-      // Quick parameter extraction
       const userId = user?.id;
       if (!userId) return;
 
@@ -208,7 +194,6 @@ export const useFastChatNavigation = () => {
         vendorAvatar,
       } = chatParams;
 
-      // Quick room ID calculation
       let actualRoomId = roomId;
       let actualReceiverId = receiverId;
 
@@ -219,7 +204,6 @@ export const useFastChatNavigation = () => {
 
       if (!actualRoomId) return;
 
-      // ✅ INSTANT NAVIGATION - No async operations
       navigation.navigate("ChatDetailScreen", {
         roomId: actualRoomId,
         receiverId: actualReceiverId,
