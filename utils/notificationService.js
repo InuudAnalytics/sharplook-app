@@ -83,120 +83,118 @@ class NotificationService {
   /**
    * Request notification permissions and register for push tokens
    */
-  async registerForPushNotifications() {
-    try {
-      console.log("Starting push notification registration...");
+async registerForPushNotifications() {
+  try {
+    console.log("Starting push notification registration...");
 
-      // Check if device supports notifications
-      if (!Device.isDevice) {
-        console.log("Not a physical device, skipping notification setup");
-        return false;
-      }
-
-      // Set up Android notification channel
-      if (Platform.OS === "android") {
-        console.log("Setting up Android notification channels...");
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "Default Notifications",
-          description: "Default notification channel for app notifications",
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: "#ffffff",
-          sound: "default",
-          enableVibrate: true,
-          enableLights: true,
-          lockscreenVisibility:
-            Notifications.AndroidNotificationVisibility.PUBLIC,
-        });
-
-        await Notifications.setNotificationChannelAsync("high-priority", {
-          name: "High Priority",
-          description: "High priority notifications for important updates",
-          importance: Notifications.AndroidImportance.HIGH,
-          vibrationPattern: [0, 500, 250, 500],
-          lightColor: "#ffffff",
-          sound: "default",
-          enableVibrate: true,
-          enableLights: true,
-          lockscreenVisibility:
-            Notifications.AndroidNotificationVisibility.PUBLIC,
-        });
-      }
-
-      // ✅ Request Expo notification permissions (iOS + Android 13+)
-      console.log("Requesting Expo notification permissions...");
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      console.log("Expo notification permission status:", finalStatus);
-      if (finalStatus !== "granted") {
-        console.log("Expo notification permission denied");
-        return false;
-      }
-
-      // ✅ Request FCM permission (Firebase) - only if available
-      if (messaging) {
-        console.log("Requesting FCM permissions...");
-        try {
-          const authStatus = await messaging().requestPermission();
-          const enabled =
-            authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-            authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-          console.log(
-            "FCM permission status:",
-            authStatus,
-            "Enabled:",
-            enabled
-          );
-          if (!enabled) {
-            console.log("FCM permission denied");
-            return false;
-          }
-
-          // Get FCM token
-          console.log("Getting FCM token...");
-          const fcmToken = await messaging().getToken();
-          if (!fcmToken) {
-            console.log("Failed to get FCM token");
-            return false;
-          }
-
-          console.log("FCM token obtained:", fcmToken.substring(0, 20) + "...");
-          this.fcmToken = fcmToken;
-
-          await this.storePushToken(this.fcmToken);
-          await this.registerTokenWithBackend(this.fcmToken);
-
-          this.setupNotificationListeners();
-          this.setupTokenRefreshListener();
-          this.setupBackgroundMessageHandler();
-
-          console.log("Push notification registration completed successfully");
-          return true;
-        } catch (error) {
-          console.error("Firebase messaging error:", error);
-          // Fall back to local notifications only
-          console.log("Falling back to local notifications only");
-          return this.setupLocalNotificationsOnly();
-        }
-      } else {
-        console.log(
-          "Firebase messaging not available, using local notifications only"
-        );
-        return this.setupLocalNotificationsOnly();
-      }
-    } catch (error) {
-      console.error("Error in registerForPushNotifications:", error);
+    // Check if device supports notifications
+    if (!Device.isDevice) {
+      console.log("Not a physical device, skipping notification setup");
       return false;
     }
+
+    // Set up Android notification channels
+    if (Platform.OS === "android") {
+      console.log("Setting up Android notification channels...");
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Default Notifications",
+        description: "Default notification channel for app notifications",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#ffffff",
+        sound: "default",
+        enableVibrate: true,
+        enableLights: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+
+      await Notifications.setNotificationChannelAsync("high-priority", {
+        name: "High Priority",
+        description: "High priority notifications for important updates",
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 500, 250, 500],
+        lightColor: "#ffffff",
+        sound: "default",
+        enableVibrate: true,
+        enableLights: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+    }
+
+    // Request Expo notification permissions
+    console.log("Requesting Expo notification permissions...");
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    console.log("Expo notification permission status:", finalStatus);
+    if (finalStatus !== "granted") {
+      console.log("Expo notification permission denied");
+      return false;
+    }
+
+    // Request FCM permissions if available
+    if (messaging) {
+      console.log("Requesting FCM permissions...");
+      try {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        console.log("FCM permission status:", authStatus, "Enabled:", enabled);
+        if (!enabled) {
+          console.log("FCM permission denied");
+          return false;
+        }
+
+        // ✅ Delete old FCM token before generating new one
+        try {
+          console.log("Deleting old FCM token...");
+          await messaging().deleteToken();
+        } catch (deleteError) {
+          console.warn("Error deleting FCM token (can be ignored):", deleteError);
+        }
+
+        // ✅ Get new FCM token
+        console.log("Getting new FCM token...");
+        const fcmToken = await messaging().getToken();
+        if (!fcmToken) {
+          console.log("Failed to get FCM token");
+          return false;
+        }
+
+        console.log("FCM token obtained:", fcmToken.substring(0, 20) + "...");
+        this.fcmToken = fcmToken;
+
+        await this.storePushToken(fcmToken);
+        await this.registerTokenWithBackend(fcmToken);
+
+        this.setupNotificationListeners();
+        this.setupTokenRefreshListener();
+        this.setupBackgroundMessageHandler();
+
+        console.log("Push notification registration completed successfully");
+        return true;
+      } catch (error) {
+        console.error("Firebase messaging error:", error);
+        console.log("Falling back to local notifications only");
+        return this.setupLocalNotificationsOnly();
+      }
+    } else {
+      console.log("Firebase messaging not available, using local notifications only");
+      return this.setupLocalNotificationsOnly();
+    }
+  } catch (error) {
+    console.error("Error in registerForPushNotifications:", error);
+    return false;
   }
+}
+
 
   /**
    * Setup local notifications only (fallback when Firebase is not available)
