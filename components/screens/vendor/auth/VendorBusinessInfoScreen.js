@@ -289,36 +289,18 @@ export default function VendorBusinessInfoScreen({ navigation }) {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "center",
           backgroundColor: "#EB278D",
           paddingTop: 60,
           paddingBottom: 16,
           paddingHorizontal: 16,
         }}
       >
-        <Pressable onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={24} color="#fff" />
-        </Pressable>
         <Text
           style={{ color: "#fff", fontFamily: "poppinsMedium", fontSize: 16 }}
         >
           Vendor's Information
         </Text>
-        <TouchableOpacity
-        // onPress={() => navigation.replace("Home")}
-        >
-          {" "}
-          {/* Replace with your skip logic */}
-          <Text
-            style={{
-              color: "#fff",
-              fontFamily: "poppinsRegular",
-              fontSize: 10,
-            }}
-          >
-            Skip
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* Content Area */}

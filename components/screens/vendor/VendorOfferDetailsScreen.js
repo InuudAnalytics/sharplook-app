@@ -25,7 +25,7 @@ export default function VendorOfferDetailsScreen() {
   const { offer } = route.params || {};
   const [loading, setLoading] = useState(false);
   const offerDetails = offer;
-
+  console.log({ offerDetails });
   const handleAcceptOffer = async () => {
     setLoading(true);
     try {
@@ -72,11 +72,7 @@ export default function VendorOfferDetailsScreen() {
           Offer Details
         </Text>
 
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <TouchableOpacity style={{ marginRight: 15 }}>
-            <Ionicons name="notifications-outline" size={22} color="#1F2937" />
-          </TouchableOpacity>
-        </View>
+        <View style={{ width: 26 }} />
       </View>
 
       {/* Scrollable Content */}
@@ -289,7 +285,7 @@ export default function VendorOfferDetailsScreen() {
                   justifyContent: "space-between",
                 }}
               >
-                <View>
+                <View className="w-1/2">
                   <Text
                     style={{
                       fontSize: 14,
@@ -311,7 +307,7 @@ export default function VendorOfferDetailsScreen() {
                   </Text>
                 </View>
 
-                <View style={{ alignItems: "flex-end" }}>
+                <View style={{ alignItems: "flex-end" }} className="w-1/2">
                   <Text
                     style={{
                       fontSize: 14,
@@ -323,12 +319,12 @@ export default function VendorOfferDetailsScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: 14,
                       fontFamily: "poppinsMedium",
                       color: "#242524",
                     }}
                   >
-                    {getRelativeTime(offerDetails.createdAt)}
+                    {offerDetails?.fullAddress}
                   </Text>
                 </View>
               </View>

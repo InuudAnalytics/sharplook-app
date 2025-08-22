@@ -8,7 +8,7 @@ import { emailVerificationSchema } from "../../../utils/validationSchemas";
 import SuccessModal from "../../Modal/SuccessModal";
 
 export default function EmailVerificationForgotPassword({ navigation, route }) {
-  const [code, setCode] = useState(["", "", "", ""]);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(60);
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function EmailVerificationForgotPassword({ navigation, route }) {
       const verificationCode = newCode.join("");
       setFieldValue("otp", verificationCode);
 
-      if (text && idx < 3) inputs.current[idx + 1].focus();
+      if (text && idx < 5) inputs.current[idx + 1].focus();
       if (!text && idx > 0) inputs.current[idx - 1].focus();
     }
   };
@@ -99,7 +99,7 @@ export default function EmailVerificationForgotPassword({ navigation, route }) {
         {({ setFieldValue, errors, touched, handleSubmit }) => (
           <>
             <View className="flex-row justify-center mb-4 gap-4">
-              {[0, 1, 2, 3].map((i) => (
+              {[0, 1, 2, 3, 4, 5].map((i) => (
                 <TextInput
                   key={i}
                   ref={(el) => (inputs.current[i] = el)}
@@ -108,7 +108,7 @@ export default function EmailVerificationForgotPassword({ navigation, route }) {
                   keyboardType="number-pad"
                   maxLength={1}
                   cursorColor="#eb278c"
-                  className={`w-14 h-14 border-2 rounded-lg text-center text-xl ${code[i] ? "border-primary" : "border-[#eb278c1c]"}`}
+                  className={`w-12 h-12 border-2 rounded-lg text-center text-lg ${code[i] ? "border-primary" : "border-[#eb278c1c]"}`}
                   style={{ fontFamily: "poppinsRegular" }}
                 />
               ))}

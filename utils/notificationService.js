@@ -369,6 +369,8 @@ class NotificationService {
     }
 
     console.log("Setting up background message handler...");
+    // Note: setBackgroundMessageHandler doesn't return an unsubscribe function
+    // It's a global handler that persists until the app is terminated
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       console.log("Received background message:", remoteMessage);
       try {
@@ -384,6 +386,9 @@ class NotificationService {
         console.error("Error showing background notification:", error);
       }
     });
+
+    // Mark that background handler is set up
+    this.backgroundMessageUnsubscribe = true;
   }
 
   /**
@@ -458,14 +463,46 @@ class NotificationService {
    */
   cleanup() {
     console.log("Cleaning up notification listeners...");
-    if (this.notificationListener) {
-      this.notificationListener();
-    }
-    if (this.responseListener) {
-      this.responseListener.remove();
-    }
-    if (this.tokenRefreshUnsubscribe) {
-      this.tokenRefreshUnsubscribe();
+    try {
+      // Handle notificationListener - could be either a function or an object with remove method
+      if (this.notificationListener) {
+        if (typeof this.notificationListener === "function") {
+          this.notificationListener();
+        } else if (
+          this.notificationListener &&
+          typeof this.notificationListener.remove === "function"
+        ) {
+          this.notificationListener.remove();
+        }
+      }
+
+      if (
+        this.responseListener &&
+        typeof this.responseListener.remove === "function"
+      ) {
+        this.responseListener.remove();
+      }
+      if (
+        this.tokenRefreshUnsubscribe &&
+        typeof this.tokenRefreshUnsubscribe === "function"
+      ) {
+        this.tokenRefreshUnsubscribe();
+      }
+
+      // Note: backgroundMessageUnsubscribe is not a function, it's just a flag
+      // setBackgroundMessageHandler doesn't return an unsubscribe function
+      // The background handler persists until app termination
+
+      // Reset all listeners to null
+      this.notificationListener = null;
+      this.responseListener = null;
+      this.tokenRefreshUnsubscribe = null;
+      this.backgroundMessageUnsubscribe = null;
+      this.isInitialized = false;
+
+      console.log("Notification listeners cleaned up successfully");
+    } catch (error) {
+      console.error("Error during notification cleanup:", error);
     }
   }
 

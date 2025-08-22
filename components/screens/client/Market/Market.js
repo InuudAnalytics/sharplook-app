@@ -9,15 +9,13 @@ import {
   Dimensions,
   Animated, // <-- Add Animated import
 } from "react-native";
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { useStatusBar } from "../../../../context/StatusBarContext";
 import { showToast } from "../../../ToastComponent/Toast";
 import { formatAmount } from "../../../formatAmount";
 import { HttpClient } from "../../../../api/HttpClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCart } from "../../../../context/CartContext";
-// import ProductDetailsModal from "../ProductDetailsModal";
 import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { ChatConnectionLoader } from "../../../reusuableComponents/ChatConnectionLoader";
 import { StatusBar } from "react-native";
@@ -143,8 +141,6 @@ export default function Market() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Helper to get all product IDs in cart
   const cartProductIds = cartItems.map(
@@ -158,7 +154,6 @@ export default function Market() {
 
   const fetch = async () => {
     setLoading(true);
-    const token = await AsyncStorage.getItem("token");
     try {
       const res = await HttpClient.get("/products/getAllProducts");
       setProducts(res.data.data || []);
@@ -208,6 +203,7 @@ export default function Market() {
       addingToCart,
     });
   };
+  console.log({ products });
   const handleAddToCartFromModal = async (product, quantity) => {
     for (let i = 0; i < quantity; i++) {
       await handleAddToCart(product);

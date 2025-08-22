@@ -7,11 +7,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { AuthInput } from "../../../reusuableComponents/inputFields/AuthInput";
 import { Formik } from "formik";
 import Logo from "../../../../assets/img/logo/sharplooklogo.svg";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { AntDesign } from "@expo/vector-icons";
 import AuthButton from "../../../reusuableComponents/buttons/AuthButton";
 import { registerSchema } from "../../../../utils/validationSchemas";
 import Dropdown from "../../../reusuableComponents/inputFields/Dropdown";
@@ -227,54 +229,162 @@ export default function VendorRegisterScreen({ navigation }) {
                         : null}
                   </Text>
                 </View>
-                {/* Document Upload Box */}
-                <Pressable
-                  onPress={async () => {
-                    try {
-                      const result = await DocumentPicker.getDocumentAsync({
-                        type: [
-                          "application/pdf",
-                          "image/jpeg",
-                          "image/jpg",
-                          "image/png",
-                        ],
-                        copyToCacheDirectory: true,
-                        multiple: false,
-                      });
-                      if (
-                        !result.canceled &&
-                        result.assets &&
-                        result.assets.length > 0
-                      ) {
-                        const selectedFile = result.assets[0];
-                        setFieldValue("identityImage", selectedFile);
-                      }
-                    } catch (error) {}
-                  }}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: "#EB278D",
-                    borderStyle: "dashed",
-                    borderRadius: 8,
-                    padding: 14,
-                    alignItems: "center",
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    marginBottom: 4,
-                  }}
-                  className="mt-2 mb-1"
-                >
-                  <Text
-                    className="text-[12px]"
-                    style={{ fontFamily: "poppinsRegular", color: "#222" }}
+                {/* Document Upload Box - Only show when no file is selected */}
+                {!values.identityImage && (
+                  <Pressable
+                    onPress={async () => {
+                      try {
+                        const result = await DocumentPicker.getDocumentAsync({
+                          type: [
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/jpg",
+                            "image/png",
+                          ],
+                          copyToCacheDirectory: true,
+                          multiple: false,
+                        });
+                        if (
+                          !result.canceled &&
+                          result.assets &&
+                          result.assets.length > 0
+                        ) {
+                          const selectedFile = result.assets[0];
+                          setFieldValue("identityImage", selectedFile);
+                        }
+                      } catch (error) {}
+                    }}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#EB278D",
+                      borderStyle: "dashed",
+                      borderRadius: 8,
+                      padding: 14,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      marginBottom: 4,
+                    }}
+                    className="mt-2 mb-1"
                   >
-                    {values.identityImage?.name ||
-                      "Upload any means of Identity"}
-                  </Text>
-                  {!values.identityImage?.name && (
+                    <Text
+                      className="text-[12px]"
+                      style={{ fontFamily: "poppinsRegular", color: "#222" }}
+                    >
+                      Upload any means of Identity
+                    </Text>
                     <MaterialIcons name="add" size={16} color="#201E1F" />
-                  )}
-                </Pressable>
+                  </Pressable>
+                )}
+
+                {/* File Preview Section */}
+                {values.identityImage && (
+                  <View className="mb-4">
+                    {values.identityImage.mimeType?.startsWith("image/") ? (
+                      // Image Preview
+                      <View style={{ alignItems: "center" }}>
+                        <View
+                          style={{
+                            position: "relative",
+                            width: 172,
+                            height: 172,
+                          }}
+                        >
+                          <Image
+                            source={{ uri: values.identityImage.uri }}
+                            style={{ width: 172, height: 172, borderRadius: 8 }}
+                          />
+                          <TouchableOpacity
+                            onPress={() => setFieldValue("identityImage", null)}
+                            style={{
+                              position: "absolute",
+                              top: 6,
+                              right: 6,
+                              backgroundColor: "rgba(255,255,255,0.7)",
+                              borderRadius: 16,
+                              padding: 8,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <AntDesign
+                              name="delete"
+                              size={16}
+                              color="#E53935"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      // PDF/File Name Display
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          backgroundColor: "#f8f9fa",
+                          padding: 12,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: "#e9ecef",
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontFamily: "poppinsMedium",
+                              fontSize: 14,
+                              color: "#333",
+                            }}
+                          >
+                            {values.identityImage.name}
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: "poppinsRegular",
+                              fontSize: 12,
+                              color: "#666",
+                              marginTop: 2,
+                            }}
+                          >
+                            {(values.identityImage.size / 1024 / 1024).toFixed(
+                              2
+                            )}{" "}
+                            MB
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => setFieldValue("identityImage", null)}
+                          style={{
+                            backgroundColor: "#E53935",
+                            borderRadius: 16,
+                            padding: 8,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AntDesign name="delete" size={16} color="white" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    {/* Image Name Display (for images) */}
+                    {values.identityImage.mimeType?.startsWith("image/") && (
+                      <Text
+                        style={{
+                          fontFamily: "poppinsMedium",
+                          fontSize: 14,
+                          color: "#333",
+                          marginTop: 8,
+                          textAlign: "center",
+                        }}
+                      >
+                        {values.identityImage.name}
+                      </Text>
+                    )}
+                  </View>
+                )}
+
                 <Text
                   style={{
                     fontFamily: "poppinsRegular",

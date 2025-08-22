@@ -19,7 +19,7 @@ import LoaderOverlay from "../../../reusuableComponents/LoaderOverlay";
 import { Feather } from "@expo/vector-icons";
 
 export default function VendorEmailVerificationScreen({ navigation, route }) {
-  const [code, setCode] = useState(["", "", "", ""]);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(60);
   const [verifying, setVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -65,13 +65,13 @@ export default function VendorEmailVerificationScreen({ navigation, route }) {
       const verificationCode = newCode.join("");
       setFieldValue("otp", verificationCode);
 
-      if (text && idx < 3) inputs.current[idx + 1].focus();
+      if (text && idx < 5) inputs.current[idx + 1].focus();
       if (!text && idx > 0) inputs.current[idx - 1].focus();
 
-      // Auto-verify when all 4 digits are entered
-      if (text && idx === 3) {
+      // Auto-verify when all 6 digits are entered
+      if (text && idx === 5) {
         const fullCode = newCode.join("");
-        if (fullCode.length === 4) {
+        if (fullCode.length === 6) {
           Keyboard.dismiss();
           handleVerify({ otp: fullCode });
         }
@@ -88,7 +88,7 @@ export default function VendorEmailVerificationScreen({ navigation, route }) {
       navigation.navigate("VendorLogin");
     } catch (error) {
       // Clear OTP input on error
-      setCode(["", "", "", ""]);
+      setCode(["", "", "", "", "", ""]);
       inputs.current[0]?.focus();
       if (isAxiosError(error)) {
         if (error.response && error.response.data) {
@@ -137,7 +137,7 @@ export default function VendorEmailVerificationScreen({ navigation, route }) {
         {({ setFieldValue, errors, touched, handleSubmit }) => (
           <>
             <View className="flex-row justify-center mb-4 gap-4">
-              {[0, 1, 2, 3].map((i) => (
+              {[0, 1, 2, 3, 4, 5].map((i) => (
                 <TextInput
                   key={i}
                   ref={(el) => (inputs.current[i] = el)}
@@ -146,7 +146,7 @@ export default function VendorEmailVerificationScreen({ navigation, route }) {
                   keyboardType="number-pad"
                   maxLength={1}
                   cursorColor="#eb278c"
-                  className={`w-14 h-14 border-2 rounded-lg text-center text-xl ${code[i] ? "border-primary" : "border-[#eb278c1c]"}`}
+                  className={`w-12 h-12 border-2 rounded-lg text-center text-lg ${code[i] ? "border-primary" : "border-[#eb278c1c]"}`}
                   style={{ fontFamily: "poppinsRegular" }}
                 />
               ))}

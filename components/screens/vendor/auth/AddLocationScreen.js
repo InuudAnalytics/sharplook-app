@@ -183,15 +183,7 @@ export default function AddLocationScreen({ navigation }) {
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={24} color="#fff" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Location</Text>
-        <TouchableOpacity
-        // onPress={() => navigation.replace("Home")}
-        >
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -336,7 +328,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     backgroundColor: "#EB278D",
     paddingTop: 60,
     paddingBottom: 16,
