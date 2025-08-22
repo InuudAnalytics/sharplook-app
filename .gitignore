@@ -33,7 +33,6 @@ yarn-error.*
 .env*.local
 
 # Google Services (sensitive credentials)
-google-services-account.json
 google-services.json
 
 # typescript
