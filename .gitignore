@@ -33,7 +33,7 @@ yarn-error.*
 .env*.local
 
 # Google Services (sensitive credentials)
-
+*.google-services-account.json
 
 # typescript
 *.tsbuildinfo
