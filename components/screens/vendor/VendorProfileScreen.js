@@ -13,13 +13,18 @@ import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
 import TawkToChat from "../../TawkToChat";
-
+import { HttpClient } from "../../../api/HttpClient";
+import { BlurView } from "expo-blur";
+import { showToast } from "../../ToastComponent/Toast";
 const VendorProfileScreen = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
 
   const [chatVisible, setChatVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [isDeleting, setIsDeleting] = useState(false);
+
 
   // TODO: Replace with actual vendor info from context or props
   const vendorName = `${user?.vendorOnboarding?.businessName}`;
@@ -50,8 +55,103 @@ const VendorProfileScreen = () => {
       setIsLoading(false);
     }, 3000);
   };
+
+const handleDeleteAccount = async () => {
+  setIsDeleting(true);
+  try {
+    const res = await HttpClient.delete("/vendor/deleteMyVendorAcct");
+
+    if (res?.data?.success) {
+      showToast.success("Account deleted successfully");
+      await logout();
+    } else {
+      showToast.error("Error", res.data?.message || "Failed to delete account");
+    }
+  } catch (error) {
+    if (error.response) {
+      showToast.error("Error", error.response.data?.message || "Server error");
+    } else {
+      showToast.error("Error", "Network error or server unreachable");
+    }
+  } finally {
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+  }
+};
+
+
+
   return (
     <SafeAreaView className="flex-1 bg-secondary">
+
+      <Modal
+  visible={showDeleteModal}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setShowDeleteModal(false)}
+>
+  <View className="flex-1 justify-center items-center bg-black bg-opacity-60 px-6">
+    <BlurView
+      intensity={50}
+      tint="dark"
+      className="rounded-2xl w-full max-w-md p-6 overflow-hidden"
+      style={{
+        backgroundColor: "rgba(255, 255, 255, 0.25)",
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.3)",
+      }}
+    >
+      <View className="absolute inset-0 bg-black  rounded-2xl" />
+
+      <View className="relative">
+        <Text
+          className="text-2xl font-semibold text-center mb-4 text-white"
+          style={{ fontFamily: "poppinsMedium" }}
+        >
+          Are you sure you want to delete your account?
+        </Text>
+        <Text
+          className="text-center text-lg mb-6 text-gray-200"
+          style={{ fontFamily: "poppinsLight" }}
+        >
+          This action cannot be undone.
+        </Text>
+
+        <View className="flex-row justify-between space-x-3">
+          <TouchableOpacity
+            onPress={() => setShowDeleteModal(false)}
+            className="flex-1 bg-white/70 py-3 rounded-xl items-center mr-4"
+          >
+            <Text
+              className="text-black text-sm"
+              style={{ fontFamily: "poppinsRegular" }}
+            >
+              Cancel
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            className="flex-1 bg-[#FF0000]/90 py-3 rounded-xl items-center"
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text
+                className="text-white text-sm"
+                style={{ fontFamily: "poppinsRegular" }}
+              >
+                Delete
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </BlurView>
+  </View>
+</Modal>
+
       {/* Header with logo, name, badge, address */}
       <StatusBar barStyle="light-content" backgroundColor={"#EB278D"} />
       <View className="bg-primary rounded-b-[40px] pt-[40px] pb-8 relative">
@@ -73,7 +173,7 @@ const VendorProfileScreen = () => {
             />
           </View>
           <Text
-            className="text-white text-[18px] text-center"
+            className="text-white text-[16px] text-center"
             style={{ fontFamily: "poppinsMedium" }}
           >
             {user?.vendorOnboarding?.businessName}
@@ -82,7 +182,7 @@ const VendorProfileScreen = () => {
             <View className="bg-white px-3 py-1 rounded-lg flex-row items-center mr-2">
               <View className="w-2 h-2 rounded-full bg-[#ED2584] mr-2" />
               <Text
-                className="text-[14px] text-[#ED2584]"
+                className="text-[12px] text-[#ED2584]"
                 style={{ fontFamily: "poppinsMedium" }}
               >
                 {user?.vendorOnboarding?.serviceType === "IN_SHOP"
@@ -94,7 +194,7 @@ const VendorProfileScreen = () => {
           <View className="flex-row justify-center w-[70%] mt-2">
             <Ionicons name="location-sharp" size={14} color="#fff" />
             <Text
-              className="text-white text-center text-[14px] ml-1"
+              className="text-white text-center text-[12px] ml-1"
               style={{ fontFamily: "poppinsLight" }}
             >
               {user?.vendorOnboarding?.location}
@@ -113,7 +213,7 @@ const VendorProfileScreen = () => {
             <Ionicons name="storefront" size={24} color="#fff" />
           </View>
           <Text
-            className="flex-1 text-[16px] text-faintDark"
+            className="flex-1 text-[14px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
           >
             Store Setup and Management
@@ -145,7 +245,7 @@ const VendorProfileScreen = () => {
             <Ionicons name="help-circle" size={24} color="#fff" />
           </View>
           <Text
-            className="flex-1 text-[16px] text-faintDark"
+            className="flex-1 text-[14px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
           >
             Help and Support
@@ -161,7 +261,7 @@ const VendorProfileScreen = () => {
             <MaterialIcons name="gavel" size={24} color="#fff" />
           </View>
           <Text
-            className="flex-1 text-[16px] text-faintDark"
+            className="flex-1 text-[14px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
           >
             Legal
@@ -178,24 +278,27 @@ const VendorProfileScreen = () => {
             <Ionicons name="log-out-outline" size={24} color="#fff" />
           </View>
           <Text
-            className="flex-1 text-[16px] text-[#FF0000]"
+            className="flex-1 text-[14px] text-[#FF0000]"
             style={{ fontFamily: "poppinsRegular" }}
           >
             Logout
           </Text>
         </TouchableOpacity>
-        {/* Delete Account */}
-        {/* <TouchableOpacity className="flex-row items-center bg-white rounded-xl px-4 py-4 shadow-sm">
-          <View className="bg-[#FF0000] p-2 rounded-full mr-4">
-            <Ionicons name="trash" size={24} color="#fff" />
-          </View>
-          <Text
-            className="flex-1 text-[14px] text-[#FF0000]"
-            style={{ fontFamily: "poppinsRegular" }}
+                <TouchableOpacity
+            className="flex-row items-center bg-white rounded-xl px-4 py-4 shadow-sm"
+            onPress={() => setShowDeleteModal(true)}
           >
-            Delete Account
-          </Text>
-        </TouchableOpacity> */}
+            <View className="bg-[#FF0000] p-2 rounded-full mr-4">
+              <Ionicons name="trash" size={24} color="#fff" />
+            </View>
+            <Text
+              className="flex-1 text-[14px] text-[#FF0000]"
+              style={{ fontFamily: "poppinsRegular" }}
+            >
+              Delete Account
+            </Text>
+          </TouchableOpacity>
+
         <Modal
           visible={chatVisible}
           animationType="slide"

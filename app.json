@@ -2,7 +2,7 @@
   "expo": {
     "name": "sharplook",
     "slug": "sharplook",
-    "version": "1.1.4",
+    "version": "1.1.9",
     "orientation": "portrait",
     "icon": "./assets/icon/app-icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.techtrove.sharplook",
-      "buildNumber": "19",
+      "buildNumber": "22",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "This app uses the camera to allow users to upload profile and service photos.",
@@ -28,13 +28,15 @@
         "NSPhotoLibraryAddUsageDescription": "This app saves photos to your library for profile pictures and service images.",
         "UIBackgroundModes": ["remote-notification", "remote-notification"],
         "NSUserNotificationsUsageDescription": "This app uses notifications to keep you updated about bookings, messages, and important updates.",
-        "NSUserNotificationAlertStyle": "alert"
+        "NSUserNotificationAlertStyle": "alert",
+        "NSUserTrackingUsageDescription": "We use your data to provide personalized content and better location services."
+
       },
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.techtrove.sharplook",
+      "package": "com.inuud.sharplook",
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",

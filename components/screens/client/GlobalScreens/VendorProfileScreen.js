@@ -120,67 +120,88 @@ export default function VendorProfileScreen({ navigation, route }) {
   };
 
   // Enhanced booking handler with loading state
-  const handleBookingNavigation = async (service) => {
-    const serviceId = service.id || service._id;
-    setBookingLoading((prev) => ({ ...prev, [serviceId]: true }));
+const handleBookingNavigation = async (service) => {
+  console.log("👉 Starting handleBookingNavigation...");
 
-    try {
-      // Add a small delay to ensure all data is ready
-      await new Promise((resolve) => setTimeout(resolve, 300));
+  const serviceId = service?.id || service?._id;
 
-      // Check if user has location set for home service booking
-      if (vendorServiceType === "HOME_SERVICE") {
-        if (!checkUserLocationForBooking(user, showToast)) {
-          setBookingLoading((prev) => {
-            const { [serviceId]: removed, ...rest } = prev;
-            return rest;
-          });
-          return;
-        }
-      }
+  setBookingLoading((prev) => ({ ...prev, [serviceId]: true }));
 
-      // Prepare minimal navigation params to reduce payload
-      const navigationParams = {
-        service: {
-          id: service.id || service._id,
-          serviceName: service.serviceName,
-          servicePrice: service.servicePrice,
-          serviceImage: service.serviceImage,
-          serviceDuration: service.serviceDuration,
-          serviceDescription: service.serviceDescription,
-        },
-        vendorData: {
-          id: vendorData?.id,
-          businessName: vendorData?.vendorOnboarding?.businessName,
-          serviceType: vendorData?.vendorOnboarding?.serviceType,
-          profilePicture: vendorData?.vendorOnboarding?.profilePicture,
-          rating: vendorData?.rating,
-          phone: vendorData?.phone,
-          // Add only essential vendor data needed for booking
-        },
-        id: vendorData?.id,
-      };
+  try {
+    // Small delay to ensure data is ready
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-      if (vendorServiceType === "HOME_SERVICE") {
-        navigation.navigate(
-          "BookingHomeServiceAppointScreen",
-          navigationParams
-        );
-      } else {
-        navigation.navigate("BookAppointmentScreen", navigationParams);
-      }
-    } catch (error) {
-      showToast.error("Failed to navigate to booking screen");
-    } finally {
-      // Clear loading state after navigation
-      setTimeout(() => {
+    console.log("📦 Service received:", service);
+    console.log("📦 Vendor data:", vendorData);
+
+    // Check if location is required
+    if (vendorServiceType === "HOME_SERVICE") {
+      console.log("🏠 Vendor service type is HOME_SERVICE. Checking user location...");
+      const hasLocation = checkUserLocationForBooking(user, showToast, navigation);
+      console.log("📍 Location check result:", hasLocation);
+
+      if (!hasLocation) {
+        console.log("❌ Location not set. Cancelling booking navigation.");
         setBookingLoading((prev) => {
           const { [serviceId]: removed, ...rest } = prev;
           return rest;
         });
-      }, 500);
+        return;
+      }
     }
-  };
+
+    // Validate service and vendor data
+    if (!service) throw new Error("❗ Service is missing.");
+    if (!vendorData) throw new Error("❗ Vendor data is missing.");
+    if (!vendorData.vendorOnboarding) throw new Error("❗ Vendor onboarding data is missing.");
+
+    // Prepare navigation params
+    const navigationParams = {
+      service: {
+        id: service.id || service._id,
+        serviceName: service.serviceName,
+        servicePrice: service.servicePrice,
+        serviceImage: service.serviceImage,
+        serviceDuration: service.serviceDuration,
+        serviceDescription: service.serviceDescription,
+      },
+      vendorData: {
+        id: vendorData?.id,
+        businessName: vendorData?.vendorOnboarding?.businessName,
+        serviceType: vendorData?.vendorOnboarding?.serviceType,
+        profilePicture: vendorData?.vendorOnboarding?.profilePicture,
+        rating: vendorData?.rating,
+        phone: vendorData?.phone,
+      },
+      id: vendorData?.id,
+    };
+
+    console.log("✅ Navigation params ready:", navigationParams);
+
+    // Perform navigation
+    if (vendorServiceType === "HOME_SERVICE") {
+      console.log("🚀 Navigating to BookingHomeServiceAppointScreen...");
+      navigation.navigate("BookingHomeServiceAppointScreen", navigationParams);
+    } else {
+      console.log("🚀 Navigating to BookAppointmentScreen...");
+      navigation.navigate("BookAppointmentScreen", navigationParams);
+    }
+
+  } catch (error) {
+    console.error("❌ Error during navigation:", error);
+    showToast.error("Failed to navigate to booking screen");
+  } finally {
+    // Clear loading state
+    setTimeout(() => {
+      console.log("✅ Clearing booking loading state for:", serviceId);
+      setBookingLoading((prev) => {
+        const { [serviceId]: removed, ...rest } = prev;
+        return rest;
+      });
+    }, 500);
+  }
+};
+
   const firstServiceId = vendorData?.vendorServices;
 
   // Complete renderProduct function
@@ -285,7 +306,7 @@ export default function VendorProfileScreen({ navigation, route }) {
           className="text-[16px] text-white"
         >
           Vendor's Profile
-        </Text>
+        </Text> 
         <TouchableOpacity
           onPress={() =>
             navigateToChat(navigation, {

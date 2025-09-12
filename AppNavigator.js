@@ -31,6 +31,7 @@ import OTPVerificationScreen from "./components/screens/vendor/auth/OTPVerificat
 import AuthPrivacyPolicy from "./components/screens/shared/PrivacyPolicy";
 import AuthTermsOfUse from "./components/screens/shared/TermsOfUse";
 import notificationService from "./utils/notificationService";
+import EditProfileScreen from "./components/screens/client/Profile/EditProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -212,6 +213,13 @@ export default function AppNavigator({ linking }) {
               component={AuthTermsOfUse}
               options={{ headerShown: false }}
             />
+
+            <Stack.Screen
+  name="EditProfileScreen"
+  component={EditProfileScreen}  // import this component at the top
+  options={{ headerShown: false }}
+/>
+
           </>
         )}
         {/* 

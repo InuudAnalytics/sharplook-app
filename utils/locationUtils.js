@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 // Calculate distance between two coordinates using Haversine formula
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -47,11 +48,16 @@ export const getCurrentLocation = async () => {
 };
 
 // Utility function to check if user location is set for home service booking
-export const checkUserLocationForBooking = (user, showToast) => {
+export const checkUserLocationForBooking = (user, showToast, navigation) => {
+    // const navigation = useNavigation();
+
   if (!user || !user.location) {
     showToast.warning(
       "Please set your location in your profile to book home services"
     );
+navigation.navigate('EditProfileScreen');
+
+    
     return false;
   }
   return true;

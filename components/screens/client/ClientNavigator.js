@@ -36,6 +36,7 @@ import ProfileStack from "./Profile/ProfileStack";
 import WalletStack from "./WalletStack";
 import ClientOfferStack from "./MyOffers/ClientOfferStack";
 import MyOrderStack from "./MyOrder/MyOrderStack";
+import EditProfileScreen from "./Profile/EditProfileScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -70,6 +71,13 @@ export default function ClientNavigator() {
             ),
           }}
         />
+
+        <Drawer.Screen
+  name="EditProfileScreen"
+  component={EditProfileScreen}
+  options={{ drawerItemStyle: { display: "none" }, headerShown: false }}
+/>
+
 
         <Drawer.Screen
           name="My Bookings"
@@ -118,7 +126,7 @@ export default function ClientNavigator() {
           }}
         />
 
-        {/* <Drawer.Screen
+        <Drawer.Screen
           name="Settings"
           component={SettingsScreen}
           options={{
@@ -126,7 +134,7 @@ export default function ClientNavigator() {
               <Ionicons name="settings-outline" size={size} color={color} />
             ),
           }}
-        /> */}
+        />
 
         {/* ScreenSTacks */}
 
