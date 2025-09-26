@@ -282,7 +282,7 @@ export default function HomeScreen() {
               className="relative"
               onPress={() => navigateToChatList(navigation)}
             >
-              <Entypo name="chat" size={24} color="#EB278D" />
+              <Entypo name="chat" size={24} color="#EB278f" />
               {/* <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center">
                 <Text className="text-[8px] text-white font-medium">2</Text>
               </View> */}

@@ -40,7 +40,7 @@ export default function Search({ navigation }) {
           <MaterialIcons name="search" size={24} color="#8c817a" />
           <TextInput
             className="ml-2 text-sm placeholder:text-faintDark2"
-            placeholder="Search Shop or Vendor"
+            placeholder="Search Shop or Vendorzz"
             cursorColor="#BF6A37"
             style={{ fontFamily: "poppinsRegular" }}
           />

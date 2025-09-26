@@ -12,6 +12,8 @@ export const FONTS = {
   LATO_BOLD: "latoBold",
 };
 
+
+
 // Common font combinations
 export const FONT_STYLES = {
   heading: {
