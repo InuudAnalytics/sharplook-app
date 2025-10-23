@@ -540,21 +540,35 @@ export default function HomeScreen() {
                           style={{ fontFamily: "latoRegular" }}
                           className="text-[12px] text-faintDark text-center mt-0.5"
                         >
-                          Others
+                          View All
                         </Text>
                       </TouchableOpacity>,
                     ];
                   })()}
             </View>
             {/* Top Vendors */}
-            <View className="flex-row items-center justify-between mt-8 mb-4 px-5">
-              <Text
-                style={{ fontFamily: "poppinsMedium" }}
-                className="text-[16px] text-fadedDark"
-              >
-                Top Vendors
-              </Text>
-            </View>
+<View className="flex-row items-center justify-between mt-8 mb-4 px-5">
+  <Text
+    style={{ fontFamily: "poppinsMedium" }}
+    className="text-[16px] text-fadedDark"
+  >
+    Top Vendors
+  </Text>
+<TouchableOpacity 
+  onPress={() => {
+    navigation.navigate("AllVendorsScreen", {
+      title: "All Vendors"
+    });
+  }}
+>
+  <Text
+    style={{ fontFamily: "poppinsMedium" }}
+    className="text-[14px] text-primary"
+  >
+    View All Vendors
+  </Text>
+</TouchableOpacity>
+</View>
             {loadingVendors ? (
               <ScrollView
                 horizontal

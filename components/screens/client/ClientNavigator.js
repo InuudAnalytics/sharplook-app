@@ -37,6 +37,7 @@ import WalletStack from "./WalletStack";
 import ClientOfferStack from "./MyOffers/ClientOfferStack";
 import MyOrderStack from "./MyOrder/MyOrderStack";
 import EditProfileScreen from "./Profile/EditProfileScreen";
+// import AllVendorsScreen from "./Home/AllVendorScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -276,6 +277,12 @@ export default function ClientNavigator() {
           component={VendorProfileServiceDetailsScreen}
           options={{ drawerItemStyle: { display: "none" } }}
         />
+
+          {/* <Drawer.Screen
+    name="AllVendorsScreen"
+    component={AllVendorsScreen}
+    options={{ drawerItemStyle: { display: "none" } }}
+  /> */}
       </Drawer.Navigator>
     </>
   );
