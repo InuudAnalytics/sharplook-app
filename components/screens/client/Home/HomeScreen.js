@@ -39,8 +39,6 @@ import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { useCategories } from "../../../../hooks/useCategories";
 import { useFilter } from "../../../../context/FilterContext";
 import { getCurrentLocation } from "../../../../utils/locationUtils";
-// import ProductDetailsModal from "../ProductDetailsModal";
-// Categories will be populated dynamically from API
 
 const recommendedProducts = [
   { image: ProductOne },
@@ -98,8 +96,8 @@ function SkeletonBox({ width, height, style }) {
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [isSearchBarActive, setIsSearchBarActive] = useState(false);
-  const [searchInput, setSearchInput] = useState(""); // <-- new state
-  const [filteredVendors, setFilteredVendors] = useState([]); // <-- new state
+  const [searchInput, setSearchInput] = useState("");
+  const [filteredVendors, setFilteredVendors] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [topVendors, setTopVendors] = useState([]);
@@ -110,22 +108,49 @@ export default function HomeScreen() {
   const [nearbyVendors, setNearbyVendors] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const searchInputRef = React.useRef(null); // <-- add ref
+  
+  // ⭐ New state for unread message count
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingUnread, setLoadingUnread] = useState(true);
+  
+  const searchInputRef = React.useRef(null);
   const { navigateToChatList } = useChatNavigation();
   const { categories, loading: categoriesLoading } = useCategories();
   const { filterVendors, filters } = useFilter();
   const { cartItems, fetchCart, loading: cartLoading } = useCart();
   const [addingToCart, setAddingToCart] = useState({});
+  
   const toggleSearchBar = () => {
     setIsSearchBarActive(!isSearchBarActive);
-    setSearchInput(""); // Reset search input when toggling
-    setFilteredVendors([]); // Reset filtered vendors
+    setSearchInput("");
+    setFilteredVendors([]);
   };
+  
   const user = useAuth();
+
+  // ⭐ Function to fetch unread message count
+  const fetchUnreadCount = async () => {
+    try {
+      setLoadingUnread(true);
+      const response = await HttpClient.get("/messages/unread/count");
+      
+      if (response.data.success) {
+        // ⭐ Fixed: response.data.data is the count directly, not an object
+        setUnreadCount(response.data.data || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      setUnreadCount(0);
+    } finally {
+      setLoadingUnread(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
       fetchCart();
+      fetchUnreadCount(); // ⭐ Fetch unread count when screen focuses
+      
       const fetchRecommendedProducts = async () => {
         setLoadingProducts(true);
         try {
@@ -138,6 +163,7 @@ export default function HomeScreen() {
           setLoadingProducts(false);
         }
       };
+      
       const fetchTopVendors = async () => {
         setLoadingVendors(true);
         try {
@@ -148,16 +174,18 @@ export default function HomeScreen() {
           setLoadingVendors(false);
         }
       };
+      
       const fetchAllServices = async () => {
         setLoadingServices(true);
         try {
           const res = await HttpClient.get("/client/services");
-          setAllServices(res.data.data); // Adjust if your API response structure differs
+          setAllServices(res.data.data);
         } catch (error) {
         } finally {
           setLoadingServices(false);
         }
       };
+      
       const fetchNearbyVendors = async () => {
         setLoadingNearby(true);
         try {
@@ -175,19 +203,18 @@ export default function HomeScreen() {
           const longitude = location.longitude;
 
           const res = await HttpClient.get(
-            `/user/nearby-vendors?latitude=${latitude}&longitude=${longitude} ⁠`
+            `/user/nearby-vendors?latitude=${latitude}&longitude=${longitude}`
           );
 
           setNearbyVendors(res.data?.data || []);
         } catch (err) {
           console.error("Error fetching services:", err);
-
-          setErrorNearby("Failed to fetch vendors. Please try again.");
           setNearbyVendors([]);
         } finally {
           setLoadingNearby(false);
         }
       };
+      
       fetchRecommendedProducts();
       fetchTopVendors();
       fetchAllServices();
@@ -199,7 +226,6 @@ export default function HomeScreen() {
     if (searchInput.trim() === "") {
       setFilteredVendors([]);
     } else {
-      // Filter out vendors without businessName first, then apply search
       const vendorsWithBusinessName = topVendors.filter((vendor) =>
         vendor?.vendorOnboarding?.businessName?.trim()
       );
@@ -213,6 +239,7 @@ export default function HomeScreen() {
   }, [searchInput, topVendors]);
 
   const currentUser = user.user;
+  
   const handleProductPress = (product) => {
     navigation.navigate("ProductDetailsScreen", {
       product,
@@ -221,6 +248,7 @@ export default function HomeScreen() {
       addingToCart,
     });
   };
+  
   const cartProductIds = cartItems.map(
     (item) =>
       item.product?.id ||
@@ -229,6 +257,7 @@ export default function HomeScreen() {
       item.id ||
       item._id
   );
+  
   const handleAddToCart = async (product) => {
     const productId = product.id || product._id;
 
@@ -252,11 +281,13 @@ export default function HomeScreen() {
       });
     }
   };
+  
   const handleAddToCartFromModal = async (product, quantity) => {
     for (let i = 0; i < quantity; i++) {
       await handleAddToCart(product);
     }
   };
+  
   return (
     <View className="flex-1 bg-secondary" style={{ position: "relative" }}>
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
@@ -278,15 +309,37 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View className="items-center flex-row gap-[12px]">
+            {/* ⭐ Chat icon with unread count badge - WhatsApp style */}
             <TouchableOpacity
               className="relative"
-              onPress={() => navigateToChatList(navigation)}
+              onPress={() => {
+                navigateToChatList(navigation);
+                // Reset unread count when navigating to chat
+                setUnreadCount(0);
+              }}
             >
               <Entypo name="chat" size={24} color="#EB278f" />
-              {/* <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center">
-                <Text className="text-[8px] text-white font-medium">2</Text>
-              </View> */}
+              {unreadCount > 0 && (
+                <View 
+                  className="absolute -top-2 -right-2 min-w-[20px] h-5 rounded-full bg-red-600 items-center justify-center px-1.5"
+                  style={{
+                    shadowColor: "#cd1717ff",
+                    shadowOffset: { width: 1, height: 1 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 1.8,
+                    elevation: 3,
+                  }}
+                >
+                  <Text 
+                    className="text-[20px] text-white font-bold"
+                    style={{ fontFamily: "poppinsSemiBold" }}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
+            
             <TouchableOpacity
               className="relative"
               onPress={() => navigation.navigate("CartScreen")}
@@ -300,6 +353,7 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
+            
             <TouchableOpacity onPress={() => navigation.openDrawer()}>
               <Menu width={30} height={30} />
             </TouchableOpacity>
@@ -321,7 +375,7 @@ export default function HomeScreen() {
               )}
             </Pressable>
             <TextInput
-              ref={searchInputRef} // <-- attach ref
+              ref={searchInputRef}
               className="ml-2 text-sm pb-4 pt-5 placeholder:text-faintDark2"
               placeholder="Search Shop or Vendor"
               cursorColor="#EB278D"
@@ -341,6 +395,7 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
+        
         {/* Filter Summary */}
         {(filters.rating || filters.serviceType) && (
           <View className="px-4 mt-2">
@@ -378,10 +433,10 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
+        
         {/* Categories or Search Results */}
         {isSearchBarActive ? (
           <ScrollView className="mt-8 px-4 space-y-4" style={{ zIndex: 20 }}>
-            {/* If searchInput is empty, show nothing. If not, show filtered vendors. */}
             {searchInput.trim() === "" ? null : filteredVendors.length === 0 ? (
               <View className="items-center justify-center py-8">
                 <EmptySVG width={120} height={120} />
@@ -400,7 +455,6 @@ export default function HomeScreen() {
                     navigation.navigate("VendorProfileScreen", {
                       vendorData: vendor,
                     });
-                    // Close search bar and reset search
                     setIsSearchBarActive(false);
                     setSearchInput("");
                     setFilteredVendors([]);
@@ -467,15 +521,13 @@ export default function HomeScreen() {
           <View className="pb-10">
             <View className="flex-row justify-between mt-6 px-2">
               {categoriesLoading
-                ? // Show skeleton loading for categories
-                  Array.from({ length: 5 }).map((_, idx) => (
+                ? Array.from({ length: 5 }).map((_, idx) => (
                     <View key={idx} className="items-center flex-1">
                       <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-lightgray" />
                       <View className="w-8 h-2 bg-gray-200 rounded mt-1" />
                     </View>
                   ))
                 : (() => {
-                    // Show first 4 categories
                     const firstFourCategories = categories.slice(0, 4);
 
                     return [
@@ -484,7 +536,6 @@ export default function HomeScreen() {
                           key={cat.id}
                           className="items-center flex-1"
                           onPress={() => {
-                            // Filter services by category
                             const filteredServices = allServices.filter(
                               (service) => service.serviceName === cat.name
                             );
@@ -518,12 +569,10 @@ export default function HomeScreen() {
                           </Text>
                         </TouchableOpacity>
                       )),
-                      // Add "Others" as the 5th item
                       <TouchableOpacity
                         key="others"
                         className="items-center flex-1"
                         onPress={() => {
-                          // Navigate to OtherScreen with all services
                           navigation.navigate("OtherScreen", {
                             allServices: allServices,
                           });
@@ -546,29 +595,31 @@ export default function HomeScreen() {
                     ];
                   })()}
             </View>
+            
             {/* Top Vendors */}
-<View className="flex-row items-center justify-between mt-8 mb-4 px-5">
-  <Text
-    style={{ fontFamily: "poppinsMedium" }}
-    className="text-[16px] text-fadedDark"
-  >
-    Top Vendors
-  </Text>
-<TouchableOpacity 
-  onPress={() => {
-    navigation.navigate("AllVendorsScreen", {
-      title: "All Vendors"
-    });
-  }}
->
-  <Text
-    style={{ fontFamily: "poppinsMedium" }}
-    className="text-[14px] text-primary"
-  >
-    View All Vendors
-  </Text>
-</TouchableOpacity>
-</View>
+            <View className="flex-row items-center justify-between mt-8 mb-4 px-5">
+              <Text
+                style={{ fontFamily: "poppinsMedium" }}
+                className="text-[16px] text-fadedDark"
+              >
+                Top Vendors
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  navigation.navigate("AllVendorsScreen", {
+                    title: "All Vendors"
+                  });
+                }}
+              >
+                <Text
+                  style={{ fontFamily: "poppinsMedium" }}
+                  className="text-[14px] text-primary"
+                >
+                  View All Vendors
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
             {loadingVendors ? (
               <ScrollView
                 horizontal
@@ -581,7 +632,6 @@ export default function HomeScreen() {
               </ScrollView>
             ) : (
               (() => {
-                // First filter out vendors without businessName, then apply user filters
                 const vendorsWithBusinessName = topVendors.filter((vendor) =>
                   vendor?.vendorOnboarding?.businessName?.trim()
                 );
@@ -729,53 +779,13 @@ export default function HomeScreen() {
                     />
                   </TouchableOpacity>
                 ))}
-                {/* ProductDetailsModal removed - now using ProductDetailsScreen */}
               </ScrollView>
             )}
-            {/* Best Offers */}
-            {/* <View className="mt-8 px-5 pb-[40px]">
-              <Text
-                style={{ fontFamily: "poppinsMedium" }}
-                className="text-[16px] text-fadedDark"
-              >
-                Best Offers
-              </Text>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row mt-3">
-                  {bestOffers.map((offer, idx) => (
-                    <View
-                      key={idx}
-                      className={`w-[200px] rounded-[8px] pt-5 pb-4 pl-5 mr-3 ${offer.bg}`}
-                    >
-                      <View>
-                        <Text
-                          style={{ fontFamily: "poppinsRegular" }}
-                          className="text-[12px]"
-                        >
-                          {offer.title}
-                        </Text>
-                        <Text
-                          style={{ fontFamily: "poppinsSemiBold" }}
-                          className={`text-[20px] ${offer.color}`}
-                        >
-                          {offer.discount}
-                        </Text>
-                      </View>
-                      <Image
-                        className="absolute right-0 bottom-0"
-                        source={offer.img}
-                        style={{ width: 70, height: 70 }}
-                      />
-                    </View>
-                  ))}
-                </View>
-              </ScrollView>
-            </View> */}
           </View>
         )}
       </ScrollView>
-      {/* Overlay to close search bar when clicking outside */}
+      
+      {/* Overlay to close search bar */}
       {isSearchBarActive && (
         <Pressable
           style={{

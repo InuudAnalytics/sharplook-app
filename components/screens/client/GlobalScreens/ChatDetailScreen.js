@@ -48,6 +48,10 @@ export default function ChatDetailScreen() {
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
+  // ⭐ Receiver online status state
+  const [isReceiverOnline, setIsReceiverOnline] = useState(false);
+  const [receiverLastSeen, setReceiverLastSeen] = useState(null);
+
   // Call states
   const [isCallActive, setIsCallActive] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
@@ -70,12 +74,14 @@ export default function ChatDetailScreen() {
   const isInitialized = useRef(false);
   const peerConnectionRef = useRef(null);
   const callTimerRef = useRef(null);
+  const pendingIceCandidates = useRef([]); // Store ICE candidates received before remote description
 
   // WebRTC Configuration
   const rtcConfiguration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
     ],
   };
 
@@ -205,26 +211,53 @@ export default function ChatDetailScreen() {
     }
   }, [roomId, userId, debouncedMarkAsRead]);
 
+  // ⭐ Format last seen text
+  const formatLastSeen = useCallback((lastSeenDate) => {
+    if (!lastSeenDate) return "Offline";
+    
+    const now = new Date();
+    const lastSeen = new Date(lastSeenDate);
+    const diffMs = now - lastSeen;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Last seen just now";
+    if (diffMins < 60) return `Last seen ${diffMins}m ago`;
+    if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+    if (diffDays === 1) return "Last seen yesterday";
+    if (diffDays < 7) return `Last seen ${diffDays}d ago`;
+    
+    return `Last seen ${lastSeen.toLocaleDateString()}`;
+  }, []);
+
   // ==================== WebRTC Functions ====================
 
   // Initialize local media stream
   const initializeLocalStream = useCallback(async (isVideoCall) => {
     try {
+      console.log("🎥 Initializing local stream, video:", isVideoCall);
       const stream = await mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
         video: isVideoCall
           ? {
               width: { ideal: 1280 },
               height: { ideal: 720 },
               facingMode: "user",
+              frameRate: { ideal: 30 },
             }
           : false,
       });
 
+      console.log("✅ Local stream initialized:", stream.id);
       setLocalStream(stream);
       return stream;
     } catch (error) {
-      console.error("Error accessing media devices:", error);
+      console.error("❌ Error accessing media devices:", error);
       Alert.alert(
         "Media Error",
         "Could not access camera/microphone. Please check permissions."
@@ -235,10 +268,12 @@ export default function ChatDetailScreen() {
 
   // Create peer connection
   const createPeerConnection = useCallback(() => {
+    console.log("🔗 Creating peer connection");
     const peerConnection = new RTCPeerConnection(rtcConfiguration);
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate && socketRef.current?.connected) {
+        console.log("📤 Sending ICE candidate to:", receiverId);
         socketRef.current.emit("ice-candidate", {
           toUserId: receiverId,
           fromUserId: userId,
@@ -248,18 +283,32 @@ export default function ChatDetailScreen() {
     };
 
     peerConnection.ontrack = (event) => {
+      console.log("📥 Received remote track:", event.streams[0]?.id);
       if (event.streams && event.streams[0]) {
         setRemoteStream(event.streams[0]);
       }
     };
 
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log("🔌 ICE connection state:", peerConnection.iceConnectionState);
+      if (
+        peerConnection.iceConnectionState === "failed" ||
+        peerConnection.iceConnectionState === "disconnected"
+      ) {
+        Alert.alert("Connection Lost", "The call connection was lost");
+        endCall();
+      }
+    };
+
     peerConnection.onconnectionstatechange = () => {
-      console.log("Connection state:", peerConnection.connectionState);
+      console.log("🔌 Connection state:", peerConnection.connectionState);
       if (
         peerConnection.connectionState === "disconnected" ||
         peerConnection.connectionState === "failed"
       ) {
         endCall();
+      } else if (peerConnection.connectionState === "connected") {
+        console.log("✅ Peer connection established successfully");
       }
     };
 
@@ -271,14 +320,28 @@ export default function ChatDetailScreen() {
   const startCall = useCallback(
     async (isVideoCall) => {
       try {
+        console.log("📞 Starting", isVideoCall ? "video" : "audio", "call to:", receiverId);
+        
         if (!socketRef.current?.connected) {
           Alert.alert("Connection Error", "Please check your internet connection");
+          return;
+        }
+
+        if (!receiverId) {
+          Alert.alert("Error", "Receiver information is missing");
+          return;
+        }
+
+        // ⭐ Check if receiver is online before starting call
+        if (!isReceiverOnline) {
+          Alert.alert("User Offline", `${receiverName} is currently offline`);
           return;
         }
 
         setCallType(isVideoCall ? "video" : "audio");
         setIsCallActive(true);
         setIsVideoEnabled(isVideoCall);
+        pendingIceCandidates.current = []; // Clear pending candidates
 
         // Get local stream
         const stream = await initializeLocalStream(isVideoCall);
@@ -292,17 +355,25 @@ export default function ChatDetailScreen() {
 
         // Add local stream tracks to peer connection
         stream.getTracks().forEach((track) => {
+          console.log("➕ Adding track to peer connection:", track.kind);
           peerConnection.addTrack(track, stream);
         });
 
         // Create and send offer
-        const offer = await peerConnection.createOffer();
+        console.log("📤 Creating offer...");
+        const offer = await peerConnection.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: isVideoCall,
+        });
+        
         await peerConnection.setLocalDescription(offer);
+        console.log("✅ Local description set, sending offer");
 
         socketRef.current.emit("call:offer", {
           toUserId: receiverId,
           fromUserId: userId,
           offer: offer,
+          callType: isVideoCall ? "video" : "audio",
         });
 
         // Start call timer
@@ -310,20 +381,22 @@ export default function ChatDetailScreen() {
           setCallDuration((prev) => prev + 1);
         }, 1000);
       } catch (error) {
-        console.error("Error starting call:", error);
-        Alert.alert("Call Error", "Failed to start call");
+        console.error("❌ Error starting call:", error);
+        Alert.alert("Call Error", "Failed to start call: " + error.message);
         endCall();
       }
     },
-    [receiverId, userId, initializeLocalStream, createPeerConnection]
+    [receiverId, userId, isReceiverOnline, receiverName, initializeLocalStream, createPeerConnection]
   );
 
   // Answer incoming call
   const answerCall = useCallback(async () => {
     try {
+      console.log("📞 Answering incoming call");
       setIsIncomingCall(false);
       setIsCallActive(true);
       setIsVideoEnabled(callType === "video");
+      pendingIceCandidates.current = []; // Clear pending candidates
 
       // Get local stream
       const stream = await initializeLocalStream(callType === "video");
@@ -337,17 +410,34 @@ export default function ChatDetailScreen() {
 
       // Add local stream tracks
       stream.getTracks().forEach((track) => {
+        console.log("➕ Adding track to peer connection:", track.kind);
         peerConnection.addTrack(track, stream);
       });
 
       // Set remote description from incoming offer
+      console.log("📥 Setting remote description from offer");
       await peerConnection.setRemoteDescription(
         new RTCSessionDescription(incomingOffer)
       );
 
+      // Add any pending ICE candidates that arrived before remote description was set
+      if (pendingIceCandidates.current.length > 0) {
+        console.log("➕ Adding", pendingIceCandidates.current.length, "pending ICE candidates");
+        for (const candidate of pendingIceCandidates.current) {
+          try {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (err) {
+            console.error("Error adding pending ICE candidate:", err);
+          }
+        }
+        pendingIceCandidates.current = [];
+      }
+
       // Create and send answer
+      console.log("📤 Creating answer...");
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
+      console.log("✅ Local description set, sending answer");
 
       socketRef.current.emit("call:answer", {
         toUserId: incomingCallerId,
@@ -360,8 +450,8 @@ export default function ChatDetailScreen() {
         setCallDuration((prev) => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error("Error answering call:", error);
-      Alert.alert("Call Error", "Failed to answer call");
+      console.error("❌ Error answering call:", error);
+      Alert.alert("Call Error", "Failed to answer call: " + error.message);
       endCall();
     }
   }, [
@@ -375,11 +465,13 @@ export default function ChatDetailScreen() {
 
   // Decline incoming call
   const declineCall = useCallback(() => {
+    console.log("❌ Declining incoming call");
     setIsIncomingCall(false);
     setIncomingOffer(null);
     setIncomingCallerId(null);
+    setCallType(null);
     
-    if (socketRef.current?.connected) {
+    if (socketRef.current?.connected && incomingCallerId) {
       socketRef.current.emit("call:end", {
         toUserId: incomingCallerId,
         fromUserId: userId,
@@ -389,6 +481,8 @@ export default function ChatDetailScreen() {
 
   // End call
   const endCall = useCallback(() => {
+    console.log("📞 Ending call");
+    
     // Stop call timer
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
@@ -403,7 +497,10 @@ export default function ChatDetailScreen() {
 
     // Stop local stream
     if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
+      localStream.getTracks().forEach((track) => {
+        track.stop();
+        console.log("⏹️ Stopped track:", track.kind);
+      });
       setLocalStream(null);
     }
 
@@ -427,6 +524,7 @@ export default function ChatDetailScreen() {
     setIsVideoEnabled(true);
     setIncomingOffer(null);
     setIncomingCallerId(null);
+    pendingIceCandidates.current = [];
   }, [localStream, receiverId, userId]);
 
   // Toggle mute
@@ -436,8 +534,9 @@ export default function ChatDetailScreen() {
         track.enabled = !track.enabled;
       });
       setIsMuted((prev) => !prev);
+      console.log("🔇 Mute toggled:", !isMuted);
     }
-  }, [localStream]);
+  }, [localStream, isMuted]);
 
   // Toggle video
   const toggleVideo = useCallback(() => {
@@ -446,15 +545,17 @@ export default function ChatDetailScreen() {
         track.enabled = !track.enabled;
       });
       setIsVideoEnabled((prev) => !prev);
+      console.log("📹 Video toggled:", !isVideoEnabled);
     }
-  }, [localStream, callType]);
+  }, [localStream, callType, isVideoEnabled]);
 
   // Toggle speaker
   const toggleSpeaker = useCallback(() => {
     setIsSpeakerOn((prev) => !prev);
     // Note: Speaker toggle requires native module implementation
     // This is a placeholder for the UI state
-  }, []);
+    console.log("🔊 Speaker toggled:", !isSpeakerOn);
+  }, [isSpeakerOn]);
 
   // Format call duration
   const formatCallDuration = useCallback((seconds) => {
@@ -487,21 +588,70 @@ export default function ChatDetailScreen() {
 
     // Connection event handlers
     socket.on("connect", () => {
+      console.log("✅ Socket connected");
       setConnectionStatus("connected");
       socket.emit("join-room", roomId);
+      
+      // Emit current user's online status
+      socket.emit("user:online", { userId });
+      console.log("✅ Current user marked online:", userId);
+      
+      // ⭐ Check receiver's online status immediately after connecting
+      if (receiverId) {
+        socket.emit("user:checkStatus", { userId: receiverId });
+        console.log("🔍 Checking receiver status:", receiverId);
+      }
     });
 
     socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
       setConnectionStatus("disconnected");
+      socket.emit("user:offline", { userId });
     });
 
     socket.on("reconnect", () => {
+      console.log("🔄 Socket reconnected");
       setConnectionStatus("connected");
       socket.emit("join-room", roomId);
+      socket.emit("user:online", { userId });
+      
+      // ⭐ Re-check receiver status on reconnect
+      if (receiverId) {
+        socket.emit("user:checkStatus", { userId: receiverId });
+      }
     });
 
-    socket.on("connect_error", () => {
+    socket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error);
       setConnectionStatus("error");
+    });
+
+    // ⭐ Listen for receiver's online status updates
+    socket.on("user:online", ({ userId: onlineUserId }) => {
+      console.log("👤 User came online:", onlineUserId);
+      if (onlineUserId === receiverId) {
+        setIsReceiverOnline(true);
+        setReceiverLastSeen(null);
+        console.log("✅ Receiver is now online:", receiverId);
+      }
+    });
+
+    socket.on("user:offline", ({ userId: offlineUserId, lastSeen }) => {
+      console.log("👤 User went offline:", offlineUserId);
+      if (offlineUserId === receiverId) {
+        setIsReceiverOnline(false);
+        setReceiverLastSeen(lastSeen);
+        console.log("❌ Receiver is now offline:", receiverId);
+      }
+    });
+
+    // ⭐ Listen for user status response
+    socket.on("user:status", ({ userId: statusUserId, isOnline, lastSeen }) => {
+      console.log("📊 Received status for:", statusUserId, "online:", isOnline);
+      if (statusUserId === receiverId) {
+        setIsReceiverOnline(isOnline);
+        setReceiverLastSeen(lastSeen);
+      }
     });
 
     // Message event handlers
@@ -606,46 +756,68 @@ export default function ChatDetailScreen() {
     // ==================== WebRTC Socket Handlers ====================
 
     // Incoming call offer
-    socket.on("call:incoming", async ({ fromUserId, offer }) => {
+    socket.on("call:incoming", async ({ fromUserId, offer, callType: incomingCallType }) => {
+      console.log("📞 Incoming call from:", fromUserId, "type:", incomingCallType);
       if (fromUserId === receiverId) {
         setIncomingOffer(offer);
         setIncomingCallerId(fromUserId);
         setIsIncomingCall(true);
-        
-        // Determine call type from offer
-        const hasVideo = offer.sdp.includes("m=video");
-        setCallType(hasVideo ? "video" : "audio");
+        setCallType(incomingCallType || "audio");
       }
     });
 
     // Call answer received
     socket.on("call:answer", async ({ fromUserId, answer }) => {
+      console.log("📥 Received answer from:", fromUserId);
       if (fromUserId === receiverId && peerConnectionRef.current) {
         try {
           await peerConnectionRef.current.setRemoteDescription(
             new RTCSessionDescription(answer)
           );
+          console.log("✅ Remote description set from answer");
+          
+          // Add any pending ICE candidates
+          if (pendingIceCandidates.current.length > 0) {
+            console.log("➕ Adding", pendingIceCandidates.current.length, "pending ICE candidates");
+            for (const candidate of pendingIceCandidates.current) {
+              try {
+                await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+              } catch (err) {
+                console.error("Error adding pending ICE candidate:", err);
+              }
+            }
+            pendingIceCandidates.current = [];
+          }
         } catch (error) {
-          console.error("Error setting remote description:", error);
+          console.error("❌ Error setting remote description:", error);
         }
       }
     });
 
     // ICE candidate received
     socket.on("ice-candidate", async ({ fromUserId, candidate }) => {
-      if (fromUserId === receiverId && peerConnectionRef.current) {
-        try {
-          await peerConnectionRef.current.addIceCandidate(
-            new RTCIceCandidate(candidate)
-          );
-        } catch (error) {
-          console.error("Error adding ICE candidate:", error);
+      console.log("📥 Received ICE candidate from:", fromUserId);
+      if (fromUserId === receiverId) {
+        if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
+          try {
+            await peerConnectionRef.current.addIceCandidate(
+              new RTCIceCandidate(candidate)
+            );
+            console.log("✅ ICE candidate added");
+          } catch (error) {
+            console.error("❌ Error adding ICE candidate:", error);
+          }
+        } else {
+          // Store candidate if remote description not set yet
+          console.log("⏳ Storing ICE candidate for later (no remote description yet)");
+          pendingIceCandidates.current.push(candidate);
         }
       }
     });
 
     // Call ended by remote user
     socket.on("call:ended", ({ fromUserId }) => {
+      console.log("📞 Call ended by:", fromUserId);
       if (fromUserId === receiverId) {
         endCall();
         Alert.alert("Call Ended", `${receiverName} ended the call`);
@@ -653,16 +825,26 @@ export default function ChatDetailScreen() {
     });
 
     return () => {
+      console.log("🧹 Cleaning up socket listeners");
       socket.off("newMessage");
       socket.off("messageDelivered");
       socket.off("messageSeen");
       socket.off("messagesRead");
       socket.off("messageSent");
       socket.off("messageError");
+      socket.off("user:online");
+      socket.off("user:offline");
+      socket.off("user:status");
       socket.off("call:incoming");
       socket.off("call:answer");
       socket.off("ice-candidate");
       socket.off("call:ended");
+      
+      // Emit offline before disconnecting
+      if (userId) {
+        socket.emit("user:offline", { userId });
+      }
+      
       socket.disconnect();
       isInitialized.current = false;
     };
@@ -719,19 +901,42 @@ export default function ChatDetailScreen() {
       if (hasUnreadMessages.current) {
         debouncedMarkAsRead();
       }
+      
+      // Emit online status and check receiver status when screen is focused
+      if (socketRef.current?.connected && userId) {
+        socketRef.current.emit("user:online", { userId });
+        if (receiverId) {
+          socketRef.current.emit("user:checkStatus", { userId: receiverId });
+        }
+      }
+      
       return () => {
         if (markAsReadTimeoutRef.current) {
           clearTimeout(markAsReadTimeoutRef.current);
         }
       };
-    }, [debouncedMarkAsRead])
+    }, [debouncedMarkAsRead, userId, receiverId])
   );
 
   // App state change handler
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
-      if (nextAppState === "active" && hasUnreadMessages.current) {
-        debouncedMarkAsRead();
+      if (nextAppState === "active") {
+        if (hasUnreadMessages.current) {
+          debouncedMarkAsRead();
+        }
+        // Emit online status and check receiver status when app becomes active
+        if (socketRef.current?.connected && userId) {
+          socketRef.current.emit("user:online", { userId });
+          if (receiverId) {
+            socketRef.current.emit("user:checkStatus", { userId: receiverId });
+          }
+        }
+      } else if (nextAppState === "background" || nextAppState === "inactive") {
+        // Emit offline status when app goes to background
+        if (socketRef.current?.connected && userId) {
+          socketRef.current.emit("user:offline", { userId });
+        }
       }
     };
 
@@ -740,7 +945,7 @@ export default function ChatDetailScreen() {
       handleAppStateChange
     );
     return () => subscription?.remove();
-  }, [debouncedMarkAsRead]);
+  }, [debouncedMarkAsRead, userId, receiverId]);
 
   // Send message function
   const sendMessage = useCallback(() => {
@@ -996,36 +1201,17 @@ export default function ChatDetailScreen() {
                   className="text-xs text-white"
                   style={{ fontFamily: "poppinsRegular" }}
                 >
-                  {connectionStatus === "connected" &&
-                  socketRef.current?.connected ? (
+                  {/* ⭐ Show receiver's online status, not current user's socket status */}
+                  {isReceiverOnline ? (
                     <>
                       Online <Text className="text-[#00FF00]">•</Text>
                     </>
-                  ) : connectionStatus === "connecting" ? (
-                    "Connecting..."
-                  ) : connectionStatus === "error" ? (
-                    "Connection failed - Retrying..."
+                  ) : receiverLastSeen ? (
+                    formatLastSeen(receiverLastSeen)
                   ) : (
                     "Offline"
                   )}
                 </Text>
-                {connectionStatus === "error" && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (socketRef.current) {
-                        socketRef.current.connect();
-                      }
-                    }}
-                    className="ml-2 bg-white/20 rounded-full px-2 py-1"
-                  >
-                    <Text
-                      className="text-xs text-white"
-                      style={{ fontFamily: "poppinsRegular" }}
-                    >
-                      Retry
-                    </Text>
-                  </TouchableOpacity>
-                )}
               </View>
             </View>
             {/* Call Buttons */}
@@ -1033,13 +1219,13 @@ export default function ChatDetailScreen() {
               <TouchableOpacity
                 onPress={() => startCall(false)}
                 className="p-2 mr-2"
-                disabled={!socketRef.current?.connected || isCallActive}
+                disabled={!socketRef.current?.connected || isCallActive || !isReceiverOnline}
               >
                 <Ionicons
                   name="call"
                   size={24}
                   color={
-                    socketRef.current?.connected && !isCallActive
+                    socketRef.current?.connected && !isCallActive && isReceiverOnline
                       ? "#fff"
                       : "#ffffff80"
                   }
@@ -1048,13 +1234,13 @@ export default function ChatDetailScreen() {
               <TouchableOpacity
                 onPress={() => startCall(true)}
                 className="p-2"
-                disabled={!socketRef.current?.connected || isCallActive}
+                disabled={!socketRef.current?.connected || isCallActive || !isReceiverOnline}
               >
                 <Ionicons
                   name="videocam"
                   size={24}
                   color={
-                    socketRef.current?.connected && !isCallActive
+                    socketRef.current?.connected && !isCallActive && isReceiverOnline
                       ? "#fff"
                       : "#ffffff80"
                   }

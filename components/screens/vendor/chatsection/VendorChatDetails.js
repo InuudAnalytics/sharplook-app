@@ -20,6 +20,7 @@ import {
   Linking,
   Alert,
   StatusBar,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -30,6 +31,13 @@ import {
 import { useAuth } from "../../../../context/AuthContext";
 import { io } from "socket.io-client";
 import { HttpClient } from "../../../../api/HttpClient";
+import {
+  RTCPeerConnection,
+  RTCView,
+  mediaDevices,
+  RTCIceCandidate,
+  RTCSessionDescription,
+} from "react-native-webrtc";
 
 export default function VendorChatDetail() {
   const route = useRoute();
@@ -41,6 +49,27 @@ export default function VendorChatDetail() {
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
+  // ⭐ Receiver (client) online status state
+  const [isReceiverOnline, setIsReceiverOnline] = useState(false);
+  const [receiverLastSeen, setReceiverLastSeen] = useState(null);
+
+  // ⭐ Typing indicator state
+  const [isTyping, setIsTyping] = useState(false);
+  const [isReceiverTyping, setIsReceiverTyping] = useState(false);
+
+  // ⭐ Call states
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
+  const [callType, setCallType] = useState(null); // 'audio' or 'video'
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [incomingOffer, setIncomingOffer] = useState(null);
+  const [incomingCallerId, setIncomingCallerId] = useState(null);
+
   // Refs
   const socketRef = useRef(null);
   const scrollViewRef = useRef(null);
@@ -48,6 +77,19 @@ export default function VendorChatDetail() {
   const markAsReadTimeoutRef = useRef(null);
   const hasUnreadMessages = useRef(false);
   const isInitialized = useRef(false);
+  const typingTimeoutRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const callTimerRef = useRef(null);
+  const pendingIceCandidates = useRef([]);
+
+  // WebRTC Configuration
+  const rtcConfiguration = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+    ],
+  };
 
   // Memoized route params to prevent re-computation
   const routeParams = useMemo(
@@ -174,6 +216,380 @@ export default function VendorChatDetail() {
     }
   }, [roomId, userId, debouncedMarkAsRead]);
 
+  // ⭐ Format last seen text
+  const formatLastSeen = useCallback((lastSeenDate) => {
+    if (!lastSeenDate) return "Offline";
+    
+    const now = new Date();
+    const lastSeen = new Date(lastSeenDate);
+    const diffMs = now - lastSeen;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Last seen just now";
+    if (diffMins < 60) return `Last seen ${diffMins}m ago`;
+    if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+    if (diffDays === 1) return "Last seen yesterday";
+    if (diffDays < 7) return `Last seen ${diffDays}d ago`;
+    
+    return `Last seen ${lastSeen.toLocaleDateString()}`;
+  }, []);
+
+  // ⭐ Handle typing indicator
+  const handleTyping = useCallback(() => {
+    if (!socketRef.current?.connected || !roomId) return;
+
+    if (!isTyping) {
+      setIsTyping(true);
+      socketRef.current.emit("typing", { roomId, senderId: userId });
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socketRef.current.emit("stopTyping", { roomId, senderId: userId });
+    }, 3000);
+  }, [roomId, userId, isTyping]);
+
+  // ==================== WebRTC Functions ====================
+
+  // Initialize local media stream
+  const initializeLocalStream = useCallback(async (isVideoCall) => {
+    try {
+      console.log("🎥 Initializing local stream, video:", isVideoCall);
+      const stream = await mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+        video: isVideoCall
+          ? {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: "user",
+              frameRate: { ideal: 30 },
+            }
+          : false,
+      });
+
+      console.log("✅ Local stream initialized:", stream.id);
+      setLocalStream(stream);
+      return stream;
+    } catch (error) {
+      console.error("❌ Error accessing media devices:", error);
+      Alert.alert(
+        "Media Error",
+        "Could not access camera/microphone. Please check permissions."
+      );
+      return null;
+    }
+  }, []);
+
+  // Create peer connection
+  const createPeerConnection = useCallback(() => {
+    console.log("🔗 Creating peer connection");
+    const peerConnection = new RTCPeerConnection(rtcConfiguration);
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && socketRef.current?.connected) {
+        console.log("📤 Sending ICE candidate to:", receiverId);
+        socketRef.current.emit("ice-candidate", {
+          toUserId: receiverId,
+          fromUserId: userId,
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    peerConnection.ontrack = (event) => {
+      console.log("📥 Received remote track:", event.streams[0]?.id);
+      if (event.streams && event.streams[0]) {
+        setRemoteStream(event.streams[0]);
+      }
+    };
+
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log("🔌 ICE connection state:", peerConnection.iceConnectionState);
+      if (
+        peerConnection.iceConnectionState === "failed" ||
+        peerConnection.iceConnectionState === "disconnected"
+      ) {
+        Alert.alert("Connection Lost", "The call connection was lost");
+        endCall();
+      }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      console.log("🔌 Connection state:", peerConnection.connectionState);
+      if (
+        peerConnection.connectionState === "disconnected" ||
+        peerConnection.connectionState === "failed"
+      ) {
+        endCall();
+      } else if (peerConnection.connectionState === "connected") {
+        console.log("✅ Peer connection established successfully");
+      }
+    };
+
+    peerConnectionRef.current = peerConnection;
+    return peerConnection;
+  }, [receiverId, userId]);
+
+  // Start outgoing call
+  const startCall = useCallback(
+    async (isVideoCall) => {
+      try {
+        console.log("📞 Starting", isVideoCall ? "video" : "audio", "call to:", receiverId);
+        
+        if (!socketRef.current?.connected) {
+          Alert.alert("Connection Error", "Please check your internet connection");
+          return;
+        }
+
+        if (!receiverId) {
+          Alert.alert("Error", "Client information is missing");
+          return;
+        }
+
+        // Check if client is online before starting call
+        if (!isReceiverOnline) {
+          Alert.alert("Client Offline", `${receiverName} is currently offline`);
+          return;
+        }
+
+        setCallType(isVideoCall ? "video" : "audio");
+        setIsCallActive(true);
+        setIsVideoEnabled(isVideoCall);
+        pendingIceCandidates.current = [];
+
+        // Get local stream
+        const stream = await initializeLocalStream(isVideoCall);
+        if (!stream) {
+          setIsCallActive(false);
+          return;
+        }
+
+        // Create peer connection
+        const peerConnection = createPeerConnection();
+
+        // Add local stream tracks to peer connection
+        stream.getTracks().forEach((track) => {
+          console.log("➕ Adding track to peer connection:", track.kind);
+          peerConnection.addTrack(track, stream);
+        });
+
+        // Create and send offer
+        console.log("📤 Creating offer...");
+        const offer = await peerConnection.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: isVideoCall,
+        });
+        
+        await peerConnection.setLocalDescription(offer);
+        console.log("✅ Local description set, sending offer");
+
+        socketRef.current.emit("call:offer", {
+          toUserId: receiverId,
+          fromUserId: userId,
+          offer: offer,
+          callType: isVideoCall ? "video" : "audio",
+        });
+
+        // Start call timer
+        callTimerRef.current = setInterval(() => {
+          setCallDuration((prev) => prev + 1);
+        }, 1000);
+      } catch (error) {
+        console.error("❌ Error starting call:", error);
+        Alert.alert("Call Error", "Failed to start call: " + error.message);
+        endCall();
+      }
+    },
+    [receiverId, userId, isReceiverOnline, receiverName, initializeLocalStream, createPeerConnection]
+  );
+
+  // Answer incoming call
+  const answerCall = useCallback(async () => {
+    try {
+      console.log("📞 Answering incoming call");
+      setIsIncomingCall(false);
+      setIsCallActive(true);
+      setIsVideoEnabled(callType === "video");
+      pendingIceCandidates.current = [];
+
+      // Get local stream
+      const stream = await initializeLocalStream(callType === "video");
+      if (!stream) {
+        endCall();
+        return;
+      }
+
+      // Create peer connection
+      const peerConnection = createPeerConnection();
+
+      // Add local stream tracks
+      stream.getTracks().forEach((track) => {
+        console.log("➕ Adding track to peer connection:", track.kind);
+        peerConnection.addTrack(track, stream);
+      });
+
+      // Set remote description from incoming offer
+      console.log("📥 Setting remote description from offer");
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(incomingOffer)
+      );
+
+      // Add any pending ICE candidates
+      if (pendingIceCandidates.current.length > 0) {
+        console.log("➕ Adding", pendingIceCandidates.current.length, "pending ICE candidates");
+        for (const candidate of pendingIceCandidates.current) {
+          try {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (err) {
+            console.error("Error adding pending ICE candidate:", err);
+          }
+        }
+        pendingIceCandidates.current = [];
+      }
+
+      // Create and send answer
+      console.log("📤 Creating answer...");
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      console.log("✅ Local description set, sending answer");
+
+      socketRef.current.emit("call:answer", {
+        toUserId: incomingCallerId,
+        fromUserId: userId,
+        answer: answer,
+      });
+
+      // Start call timer
+      callTimerRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("❌ Error answering call:", error);
+      Alert.alert("Call Error", "Failed to answer call: " + error.message);
+      endCall();
+    }
+  }, [
+    callType,
+    incomingOffer,
+    incomingCallerId,
+    userId,
+    initializeLocalStream,
+    createPeerConnection,
+  ]);
+
+  // Decline incoming call
+  const declineCall = useCallback(() => {
+    console.log("❌ Declining incoming call");
+    setIsIncomingCall(false);
+    setIncomingOffer(null);
+    setIncomingCallerId(null);
+    setCallType(null);
+    
+    if (socketRef.current?.connected && incomingCallerId) {
+      socketRef.current.emit("call:end", {
+        toUserId: incomingCallerId,
+        fromUserId: userId,
+      });
+    }
+  }, [incomingCallerId, userId]);
+
+  // End call
+  const endCall = useCallback(() => {
+    console.log("📞 Ending call");
+    
+    // Stop call timer
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+
+    // Close peer connection
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+
+    // Stop local stream
+    if (localStream) {
+      localStream.getTracks().forEach((track) => {
+        track.stop();
+        console.log("⏹️ Stopped track:", track.kind);
+      });
+      setLocalStream(null);
+    }
+
+    // Clear remote stream
+    setRemoteStream(null);
+
+    // Emit call end event
+    if (socketRef.current?.connected && receiverId) {
+      socketRef.current.emit("call:end", {
+        toUserId: receiverId,
+        fromUserId: userId,
+      });
+    }
+
+    // Reset call states
+    setIsCallActive(false);
+    setIsIncomingCall(false);
+    setCallType(null);
+    setCallDuration(0);
+    setIsMuted(false);
+    setIsVideoEnabled(true);
+    setIncomingOffer(null);
+    setIncomingCallerId(null);
+    pendingIceCandidates.current = [];
+  }, [localStream, receiverId, userId]);
+
+  // Toggle mute
+  const toggleMute = useCallback(() => {
+    if (localStream) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsMuted((prev) => !prev);
+      console.log("🔇 Mute toggled:", !isMuted);
+    }
+  }, [localStream, isMuted]);
+
+  // Toggle video
+  const toggleVideo = useCallback(() => {
+    if (localStream && callType === "video") {
+      localStream.getVideoTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsVideoEnabled((prev) => !prev);
+      console.log("📹 Video toggled:", !isVideoEnabled);
+    }
+  }, [localStream, callType, isVideoEnabled]);
+
+  // Toggle speaker
+  const toggleSpeaker = useCallback(() => {
+    setIsSpeakerOn((prev) => !prev);
+    console.log("🔊 Speaker toggled:", !isSpeakerOn);
+  }, [isSpeakerOn]);
+
+  // Format call duration
+  const formatCallDuration = useCallback((seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }, []);
+
+  // ==================== Socket Setup ====================
+
   // Optimized socket setup
   const setupSocketConnection = useCallback(() => {
     if (!userId || !roomId || isInitialized.current) return;
@@ -198,21 +614,83 @@ export default function VendorChatDetail() {
 
     // Connection event handlers
     socket.on("connect", () => {
+      console.log("✅ Vendor socket connected");
       setConnectionStatus("connected");
       socket.emit("join-room", roomId);
+      
+      // Emit current user's online status
+      socket.emit("user:online", { userId });
+      console.log("✅ Vendor marked online:", userId);
+      
+      // Check client's online status
+      if (receiverId) {
+        socket.emit("user:checkStatus", { userId: receiverId });
+        console.log("🔍 Checking client status:", receiverId);
+      }
     });
 
     socket.on("disconnect", () => {
+      console.log("❌ Vendor socket disconnected");
       setConnectionStatus("disconnected");
+      socket.emit("user:offline", { userId });
     });
 
     socket.on("reconnect", () => {
+      console.log("🔄 Vendor socket reconnected");
       setConnectionStatus("connected");
       socket.emit("join-room", roomId);
+      socket.emit("user:online", { userId });
+      
+      // Re-check client status on reconnect
+      if (receiverId) {
+        socket.emit("user:checkStatus", { userId: receiverId });
+      }
     });
 
-    socket.on("connect_error", () => {
+    socket.on("connect_error", (error) => {
+      console.error("❌ Vendor socket connection error:", error);
       setConnectionStatus("error");
+    });
+
+    // ⭐ Listen for client's online status updates
+    socket.on("user:online", ({ userId: onlineUserId }) => {
+      console.log("👤 User came online:", onlineUserId);
+      if (onlineUserId === receiverId) {
+        setIsReceiverOnline(true);
+        setReceiverLastSeen(null);
+        console.log("✅ Client is now online:", receiverId);
+      }
+    });
+
+    socket.on("user:offline", ({ userId: offlineUserId, lastSeen }) => {
+      console.log("👤 User went offline:", offlineUserId);
+      if (offlineUserId === receiverId) {
+        setIsReceiverOnline(false);
+        setReceiverLastSeen(lastSeen);
+        console.log("❌ Client is now offline:", receiverId);
+      }
+    });
+
+    // Listen for user status response
+    socket.on("user:status", ({ userId: statusUserId, isOnline, lastSeen }) => {
+      console.log("📊 Received status for:", statusUserId, "online:", isOnline);
+      if (statusUserId === receiverId) {
+        setIsReceiverOnline(isOnline);
+        setReceiverLastSeen(lastSeen);
+      }
+    });
+
+    // ⭐ Typing indicators
+    socket.on("userTyping", ({ roomId: typingRoomId, senderId }) => {
+      if (typingRoomId === roomId && senderId === receiverId) {
+        setIsReceiverTyping(true);
+      }
+    });
+
+    socket.on("userStoppedTyping", ({ roomId: typingRoomId, senderId }) => {
+      if (typingRoomId === roomId && senderId === receiverId) {
+        setIsReceiverTyping(false);
+      }
     });
 
     // Message event handlers
@@ -314,29 +792,110 @@ export default function VendorChatDetail() {
       );
     });
 
+    // ⭐ WebRTC Socket Handlers
+    socket.on("call:incoming", async ({ fromUserId, offer, callType: incomingCallType }) => {
+      console.log("📞 Incoming call from:", fromUserId, "type:", incomingCallType);
+      if (fromUserId === receiverId) {
+        setIncomingOffer(offer);
+        setIncomingCallerId(fromUserId);
+        setIsIncomingCall(true);
+        setCallType(incomingCallType || "audio");
+      }
+    });
+
+    socket.on("call:answer", async ({ fromUserId, answer }) => {
+      console.log("📥 Received answer from:", fromUserId);
+      if (fromUserId === receiverId && peerConnectionRef.current) {
+        try {
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription(answer)
+          );
+          console.log("✅ Remote description set from answer");
+          
+          // Add any pending ICE candidates
+          if (pendingIceCandidates.current.length > 0) {
+            console.log("➕ Adding", pendingIceCandidates.current.length, "pending ICE candidates");
+            for (const candidate of pendingIceCandidates.current) {
+              try {
+                await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+              } catch (err) {
+                console.error("Error adding pending ICE candidate:", err);
+              }
+            }
+            pendingIceCandidates.current = [];
+          }
+        } catch (error) {
+          console.error("❌ Error setting remote description:", error);
+        }
+      }
+    });
+
+    socket.on("ice-candidate", async ({ fromUserId, candidate }) => {
+      console.log("📥 Received ICE candidate from:", fromUserId);
+      if (fromUserId === receiverId) {
+        if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
+          try {
+            await peerConnectionRef.current.addIceCandidate(
+              new RTCIceCandidate(candidate)
+            );
+            console.log("✅ ICE candidate added");
+          } catch (error) {
+            console.error("❌ Error adding ICE candidate:", error);
+          }
+        } else {
+          console.log("⏳ Storing ICE candidate for later");
+          pendingIceCandidates.current.push(candidate);
+        }
+      }
+    });
+
+    socket.on("call:ended", ({ fromUserId }) => {
+      console.log("📞 Call ended by:", fromUserId);
+      if (fromUserId === receiverId) {
+        endCall();
+        Alert.alert("Call Ended", `${receiverName} ended the call`);
+      }
+    });
+
     return () => {
+      console.log("🧹 Cleaning up vendor socket listeners");
       socket.off("newMessage");
       socket.off("messageDelivered");
       socket.off("messageSeen");
       socket.off("messagesRead");
       socket.off("messageSent");
       socket.off("messageError");
+      socket.off("user:online");
+      socket.off("user:offline");
+      socket.off("user:status");
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
+      socket.off("call:incoming");
+      socket.off("call:answer");
+      socket.off("ice-candidate");
+      socket.off("call:ended");
+      
+      // Emit offline before disconnecting
+      if (userId) {
+        socket.emit("user:offline", { userId });
+      }
+      
       socket.disconnect();
       isInitialized.current = false;
     };
-  }, [userId, roomId, debouncedMarkAsRead]);
+  }, [userId, roomId, receiverId, receiverName, debouncedMarkAsRead, endCall]);
 
   // Initialize screen
   useEffect(() => {
     if (!userId || !roomId) return;
 
-    // Fetch messages immediately
     fetchMessages();
-
-    // Setup socket connection
     const cleanup = setupSocketConnection();
 
-    return cleanup;
+    return () => {
+      cleanup?.();
+      endCall();
+    };
   }, [userId, roomId, fetchMessages, setupSocketConnection]);
 
   // Keyboard listeners
@@ -371,25 +930,49 @@ export default function VendorChatDetail() {
     }
   }, [messages.length]);
 
-  // Handle screen focus to mark messages as read
+  // Handle screen focus
   useFocusEffect(
     useCallback(() => {
       if (hasUnreadMessages.current) {
         debouncedMarkAsRead();
       }
+      
+      // Emit online status and check client status when screen is focused
+      if (socketRef.current?.connected && userId) {
+        socketRef.current.emit("user:online", { userId });
+        if (receiverId) {
+          socketRef.current.emit("user:checkStatus", { userId: receiverId });
+        }
+      }
+      
       return () => {
         if (markAsReadTimeoutRef.current) {
           clearTimeout(markAsReadTimeoutRef.current);
         }
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
       };
-    }, [debouncedMarkAsRead])
+    }, [debouncedMarkAsRead, userId, receiverId])
   );
 
   // App state change handler
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
-      if (nextAppState === "active" && hasUnreadMessages.current) {
-        debouncedMarkAsRead();
+      if (nextAppState === "active") {
+        if (hasUnreadMessages.current) {
+          debouncedMarkAsRead();
+        }
+        if (socketRef.current?.connected && userId) {
+          socketRef.current.emit("user:online", { userId });
+          if (receiverId) {
+            socketRef.current.emit("user:checkStatus", { userId: receiverId });
+          }
+        }
+      } else if (nextAppState === "background" || nextAppState === "inactive") {
+        if (socketRef.current?.connected && userId) {
+          socketRef.current.emit("user:offline", { userId });
+        }
       }
     };
 
@@ -398,7 +981,7 @@ export default function VendorChatDetail() {
       handleAppStateChange
     );
     return () => subscription?.remove();
-  }, [debouncedMarkAsRead]);
+  }, [debouncedMarkAsRead, userId, receiverId]);
 
   // Send message function
   const sendMessage = useCallback(() => {
@@ -429,6 +1012,12 @@ export default function VendorChatDetail() {
     setMessages((prev) => [...prev, optimisticMessage]);
     setInput("");
 
+    // Stop typing indicator
+    if (isTyping) {
+      setIsTyping(false);
+      socketRef.current.emit("stopTyping", { roomId, senderId: userId });
+    }
+
     socketRef.current.emit("sendMessage", messageData);
 
     // Fallback timeout
@@ -441,7 +1030,7 @@ export default function VendorChatDetail() {
         )
       );
     }, 5000);
-  }, [input, userId, receiverId, roomId]);
+  }, [input, userId, receiverId, roomId, isTyping]);
 
   // Retry message function
   const retryMessage = useCallback(
@@ -686,7 +1275,7 @@ export default function VendorChatDetail() {
             </View>
             <View className="flex-1">
               <Text
-                className="text-white text-lg font-semibold"
+                className="text-white text-base font-semibold"
                 style={{ fontFamily: "poppinsRegular" }}
                 numberOfLines={1}
               >
@@ -694,47 +1283,65 @@ export default function VendorChatDetail() {
               </Text>
               <View className="flex-row items-center mt-1">
                 <Text
-                  className="text-sm text-white"
+                  className="text-xs text-white"
                   style={{ fontFamily: "poppinsRegular" }}
                 >
-                  {connectionStatus === "connected" &&
-                  socketRef.current?.connected ? (
+                  {/* ⭐ Show client's online status or typing indicator */}
+                  {isReceiverTyping ? (
+                    "typing..."
+                  ) : isReceiverOnline ? (
                     <>
                       Online <Text className="text-[#00FF00]">•</Text>
                     </>
-                  ) : connectionStatus === "connecting" ? (
-                    "Connecting..."
-                  ) : connectionStatus === "error" ? (
-                    "Connection failed - Retrying..."
+                  ) : receiverLastSeen ? (
+                    formatLastSeen(receiverLastSeen)
                   ) : (
                     "Offline"
                   )}
                 </Text>
-                {connectionStatus === "error" && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (socketRef.current) {
-                        socketRef.current.connect();
-                      }
-                    }}
-                    className="ml-2 bg-white/20 rounded-full px-2 py-1"
-                  >
-                    <Text
-                      className="text-sm text-white"
-                      style={{ fontFamily: "poppinsRegular" }}
-                    >
-                      Retry
-                    </Text>
-                  </TouchableOpacity>
-                )}
               </View>
             </View>
-            {/* Call Button */}
-            {clientPhone && (
-              <TouchableOpacity onPress={handlePhoneCall} className="ml-4 p-2">
-                <Ionicons name="call" size={24} color="#fff" />
+            {/* ⭐ Call Buttons */}
+            <View className="flex-row ml-4">
+              {/* Phone Call (Regular) */}
+              {clientPhone && (
+                <TouchableOpacity onPress={handlePhoneCall} className="p-2 mr-2">
+                  <Ionicons name="call-outline" size={24} color="#fff" />
+                </TouchableOpacity>
+              )}
+              {/* Audio Call (VoIP) */}
+              <TouchableOpacity
+                onPress={() => startCall(false)}
+                className="p-2 mr-2"
+                disabled={!socketRef.current?.connected || isCallActive || !isReceiverOnline}
+              >
+                <Ionicons
+                  name="call"
+                  size={24}
+                  color={
+                    socketRef.current?.connected && !isCallActive && isReceiverOnline
+                      ? "#fff"
+                      : "#ffffff80"
+                  }
+                />
               </TouchableOpacity>
-            )}
+              {/* Video Call */}
+              <TouchableOpacity
+                onPress={() => startCall(true)}
+                className="p-2"
+                disabled={!socketRef.current?.connected || isCallActive || !isReceiverOnline}
+              >
+                <Ionicons
+                  name="videocam"
+                  size={24}
+                  color={
+                    socketRef.current?.connected && !isCallActive && isReceiverOnline
+                      ? "#fff"
+                      : "#ffffff80"
+                  }
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Messages Container */}
@@ -757,7 +1364,6 @@ export default function VendorChatDetail() {
                 onMomentumScrollEnd={debouncedMarkAsRead}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ flexGrow: 1 }}
-                // Performance optimizations
                 removeClippedSubviews={true}
                 maxToRenderPerBatch={50}
                 windowSize={10}
@@ -767,19 +1373,16 @@ export default function VendorChatDetail() {
               >
                 {groupedMessages.map((group, groupIndex) => (
                   <View key={groupIndex}>
-                    {/* Date Label */}
                     <View className="items-center mb-4">
                       <View className="bg-[#F0F0F0] rounded-full px-4 py-1">
                         <Text
-                          className="text-sm text-[#666]"
+                          className="text-xs text-[#666]"
                           style={{ fontFamily: "poppinsRegular" }}
                         >
                           {group.date}
                         </Text>
                       </View>
                     </View>
-
-                    {/* Messages in this group */}
                     {group.messages.map((msg, index) =>
                       renderMessageItem(msg, index)
                     )}
@@ -797,7 +1400,10 @@ export default function VendorChatDetail() {
                 className="bg-[#F5F5F5] rounded-[8px] px-4 py-3 text-base"
                 placeholder="Type message..."
                 value={input}
-                onChangeText={setInput}
+                onChangeText={(text) => {
+                  setInput(text);
+                  handleTyping();
+                }}
                 style={{
                   fontFamily: "poppinsRegular",
                   minHeight: 40,
@@ -853,6 +1459,179 @@ export default function VendorChatDetail() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* ⭐ Incoming Call Modal */}
+      <Modal
+        visible={isIncomingCall}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={declineCall}
+      >
+        <View className="flex-1 bg-black/80 items-center justify-center">
+          <View className="bg-white rounded-3xl p-8 w-[80%] items-center">
+            <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center mb-4 overflow-hidden">
+              <Image
+                source={
+                  chat?.client?.avatar
+                    ? { uri: chat.client.avatar }
+                    : require("../../../../assets/icon/avatar.png")
+                }
+                style={{ width: 90, height: 90 }}
+                resizeMode="cover"
+              />
+            </View>
+            <Text
+              className="text-xl font-semibold mb-2"
+              style={{ fontFamily: "poppinsRegular" }}
+            >
+              {receiverName}
+            </Text>
+            <Text
+              className="text-gray-500 mb-8"
+              style={{ fontFamily: "poppinsRegular" }}
+            >
+              Incoming {callType} call...
+            </Text>
+            <View className="flex-row space-x-6">
+              <TouchableOpacity
+                onPress={declineCall}
+                className="bg-red-500 rounded-full p-5"
+              >
+                <Ionicons name="close" size={32} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={answerCall}
+                className="bg-green-500 rounded-full p-5"
+              >
+                <Ionicons name="call" size={32} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ⭐ Active Call Modal */}
+      <Modal
+        visible={isCallActive}
+        animationType="fade"
+        onRequestClose={endCall}
+      >
+        <View className="flex-1 bg-black">
+          {/* Remote Video/Avatar */}
+          {callType === "video" && remoteStream ? (
+            <RTCView
+              streamURL={remoteStream.toURL()}
+              style={{ flex: 1 }}
+              objectFit="cover"
+            />
+          ) : (
+            <View className="flex-1 items-center justify-center">
+              <View className="w-32 h-32 rounded-full bg-primary/20 items-center justify-center mb-6 overflow-hidden">
+                <Image
+                  source={
+                    chat?.client?.avatar
+                      ? { uri: chat.client.avatar }
+                      : require("../../../../assets/icon/avatar.png")
+                  }
+                  style={{ width: 120, height: 120 }}
+                  resizeMode="cover"
+                />
+              </View>
+              <Text
+                className="text-white text-2xl font-semibold mb-2"
+                style={{ fontFamily: "poppinsRegular" }}
+              >
+                {receiverName}
+              </Text>
+              <Text
+                className="text-white/70 text-lg"
+                style={{ fontFamily: "poppinsRegular" }}
+              >
+                {formatCallDuration(callDuration)}
+              </Text>
+            </View>
+          )}
+
+          {/* Local Video (PiP) */}
+          {callType === "video" && localStream && isVideoEnabled && (
+            <View className="absolute top-12 right-4 w-32 h-48 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+              <RTCView
+                streamURL={localStream.toURL()}
+                style={{ flex: 1 }}
+                objectFit="cover"
+                mirror={true}
+              />
+            </View>
+          )}
+
+          {/* Call Duration Badge */}
+          <View className="absolute top-12 left-4 bg-black/50 rounded-full px-4 py-2">
+            <Text
+              className="text-white text-sm"
+              style={{ fontFamily: "poppinsRegular" }}
+            >
+              {formatCallDuration(callDuration)}
+            </Text>
+          </View>
+
+          {/* Call Controls */}
+          <View className="absolute bottom-12 left-0 right-0 px-8">
+            <View className="flex-row justify-center space-x-6 mb-8">
+              {/* Toggle Video */}
+              {callType === "video" && (
+                <TouchableOpacity
+                  onPress={toggleVideo}
+                  className={`rounded-full p-5 ${
+                    isVideoEnabled ? "bg-white/20" : "bg-red-500"
+                  }`}
+                >
+                  <Ionicons
+                    name={isVideoEnabled ? "videocam" : "videocam-off"}
+                    size={28}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              )}
+
+              {/* Toggle Mute */}
+              <TouchableOpacity
+                onPress={toggleMute}
+                className={`rounded-full p-5 ${
+                  isMuted ? "bg-red-500" : "bg-white/20"
+                }`}
+              >
+                <Ionicons
+                  name={isMuted ? "mic-off" : "mic"}
+                  size={28}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+
+              {/* Toggle Speaker */}
+              <TouchableOpacity
+                onPress={toggleSpeaker}
+                className={`rounded-full p-5 ${
+                  isSpeakerOn ? "bg-primary" : "bg-white/20"
+                }`}
+              >
+                <Ionicons
+                  name={isSpeakerOn ? "volume-high" : "volume-medium"}
+                  size={28}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* End Call Button */}
+            <TouchableOpacity
+              onPress={endCall}
+              className="bg-red-500 rounded-full p-6 items-center justify-center mx-auto"
+            >
+              <Ionicons name="call" size={32} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
