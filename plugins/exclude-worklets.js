@@ -1,30 +1,67 @@
-const { withAppBuildGradle, withProjectBuildGradle } = require('@expo/config-plugins');
+const { withAppBuildGradle, withProjectBuildGradle, withProguardRules } = require('@expo/config-plugins');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = function excludeWorklets(config) {
+  // Add ProGuard rules to handle duplicate classes
+  config = withProguardRules(config, (config) => {
+    const rules = `
+# Keep worklets classes but allow R8 to remove duplicates
+-dontwarn com.swmansion.worklets.**
+-keep class com.swmansion.worklets.** { *; }
+-keepclassmembers class com.swmansion.worklets.** { *; }
+
+# Ignore duplicate classes during R8
+-ignorewarnings
+`;
+    
+    config.modResults = config.modResults || [];
+    config.modResults.push(rules);
+    return config;
+  });
+
   // Modify app-level build.gradle
   config = withAppBuildGradle(config, (config) => {
     if (config.modResults.contents.includes('exclude-worklets-fix-applied')) {
       return config;
     }
 
-    // Add multiDexEnabled and dependency resolution strategy
     let modifiedContents = config.modResults.contents;
 
     // Enable multidex
-    modifiedContents = modifiedContents.replace(
-      /defaultConfig\s*{/,
-      `defaultConfig {
+    if (!modifiedContents.includes('multiDexEnabled true')) {
+      modifiedContents = modifiedContents.replace(
+        /defaultConfig\s*{/,
+        `defaultConfig {
         multiDexEnabled true`
-    );
+      );
+    }
 
-    // Add resolution strategy before dependencies block
+    // Add resolution strategy and packaging options before dependencies block
     modifiedContents = modifiedContents.replace(
       /dependencies\s*{/,
       `configurations.all {
     resolutionStrategy {
-        force 'com.swmansion.reanimated:reanimated:3.15.0' // Use your reanimated version
         // Exclude worklets from react-native-worklets when reanimated is present
-        exclude group: 'com.swmansion.worklets', module: 'worklets'
+        eachDependency { details ->
+            if (details.requested.group == 'com.swmansion.worklets' && 
+                details.requested.name == 'worklets') {
+                details.useTarget group: 'com.swmansion.reanimated', name: 'reanimated'
+            }
+        }
+    }
+    exclude group: 'com.swmansion.worklets', module: 'worklets'
+}
+
+android {
+    packagingOptions {
+        pickFirst '**/libworklets.so'
+        pickFirst '**/libreanimated.so'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
     }
 }
 
@@ -52,6 +89,16 @@ dependencies {
         /subprojects\s*{/,
         `subprojects {
     // project-exclude-worklets-applied
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            android {
+                packagingOptions {
+                    pickFirst '**/libworklets.so'
+                    pickFirst '**/libreanimated.so'
+                }
+            }
+        }
+    }
     configurations.all {
         exclude group: 'com.swmansion.worklets', module: 'worklets'
     }
@@ -65,6 +112,16 @@ dependencies {
 
 subprojects {
     // project-exclude-worklets-applied
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            android {
+                packagingOptions {
+                    pickFirst '**/libworklets.so'
+                    pickFirst '**/libreanimated.so'
+                }
+            }
+        }
+    }
     configurations.all {
         exclude group: 'com.swmansion.worklets', module: 'worklets'
     }
