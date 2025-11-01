@@ -52,20 +52,6 @@
         "POST_NOTIFICATIONS",
         "RECEIVE_NOTIFICATIONS",
         "SYSTEM_ALERT_WINDOW",
-        "ACCESS_NETWORK_STATE",
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "WAKE_LOCK",
-        "CAMERA",
-        "RECORD_AUDIO",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "INTERNET",
-        "POST_NOTIFICATIONS",
-        "RECEIVE_NOTIFICATIONS",
-        "SYSTEM_ALERT_WINDOW",
         "ACCESS_NETWORK_STATE"
       ],
       "versionCode": 46,
@@ -73,8 +59,6 @@
       "googleServicesFile": "./google-services.json",
       "allowBackup": true,
       "foregroundServiceType": [
-        "dataSync",
-        "location",
         "dataSync",
         "location"
       ],
@@ -99,6 +83,16 @@
       [
         "expo-build-properties",
         {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "packagingOptions": {
+              "exclude": [
+                "com/swmansion/worklets/**"
+              ]
+            }
+          },
           "ios": {
             "useFrameworks": "static",
             "useModularHeaders": true
