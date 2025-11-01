@@ -97,6 +97,7 @@
         }
       ],
       "./plugins/exclude-worklets",
+      "./plugins/proguard-worklets",
       [
         "@react-native-firebase/app"
       ],
