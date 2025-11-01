@@ -6,7 +6,7 @@ import Logo from "../../../assets/img/logo/sharplooklogo.svg";
 import FBicon from "../../../assets/img/logo/fbicon.svg";
 import Twittericon from "../../../assets/img/logo/twittericon.svg";
 import Appleicon from "../../../assets/img/logo/appleicon.svg";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { MaterialIcons } from "@expo/vector-icons";
 import AuthButton from "../../reusuableComponents/buttons/AuthButton";
 import { useStatusBar } from "../../../context/StatusBarContext";
 import { loginSchema } from "../../../utils/validationSchemas";
