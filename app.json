@@ -26,7 +26,10 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location in the background to keep features updated.",
         "NSPhotoLibraryUsageDescription": "This app uses your photo library to allow you to select and upload profile and service photos.",
         "NSPhotoLibraryAddUsageDescription": "This app saves photos to your library for profile pictures and service images.",
-        "UIBackgroundModes": ["remote-notification", "remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification"
+        ],
         "NSUserNotificationsUsageDescription": "This app uses notifications to keep you updated about bookings, messages, and important updates.",
         "NSUserNotificationAlertStyle": "alert"
       },
@@ -69,7 +72,12 @@
       "useNextNotificationsApi": true,
       "googleServicesFile": "./google-services.json",
       "allowBackup": true,
-      "foregroundServiceType": ["dataSync", "location", "dataSync", "location"],
+      "foregroundServiceType": [
+        "dataSync",
+        "location",
+        "dataSync",
+        "location"
+      ],
       "notification": {
         "icon": "./assets/icon/app-icon.png",
         "color": "#EB278D",
@@ -97,7 +105,9 @@
           }
         }
       ],
-      ["@react-native-firebase/app"],
+      [
+        "@react-native-firebase/app"
+      ],
       [
         "@react-native-firebase/messaging",
         {
@@ -106,17 +116,16 @@
         }
       ]
     ],
-    "extra": {
-      "eas": {
-        "projectId": "704cc27d-eb97-43a5-bdca-aa813b95f72c"
-      }
-    },
-    "owner": "inuud",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/704cc27d-eb97-43a5-bdca-aa813b95f72c"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4855c8a1-23d5-469c-b6b5-ce1671057df8"
+      }
     }
   }
 }

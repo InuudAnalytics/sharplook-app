@@ -233,15 +233,16 @@ export default function CategoriesScreen() {
             className="mb-4"
           >
             {filteredNearbyVendors.map((vendor) => (
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("VendorProfileScreen", {
-                    vendorData: vendor,
-                  })
-                }
-                key={vendor.id}
-                className="w-[140px] mr-3 bg-white rounded-xl shadow-sm border border-[#F6F6F6]"
-              >
+               <Pressable
+    onPress={() => {
+      console.log("Vendor Data:", vendor);  // <-- Log vendorData here
+      navigation.navigate("VendorProfileScreen", {
+        vendorData: vendor,
+      });
+    }}
+    key={vendor.id}
+    className="w-[140px] mr-3 bg-white rounded-xl shadow-sm border border-[#F6F6F6]"
+  >
                 <Image
                   source={
                     vendor?.avatar ? { uri: vendor?.avatar } : DefaultAvatar
@@ -323,17 +324,16 @@ export default function CategoriesScreen() {
                   >
                     {service.serviceName}
                   </Text>
-                  <View className="bg-primary rounded-[4px] my-1 px-3 self-start">
-                    <Text
-                      style={{ fontFamily: "poppinsRegular" }}
-                      className="text-[8px] mt-1 text-white"
-                    >
-                      {service.vendor.vendorOnboarding.serviceType ===
-                      "HOME_SERVICE"
-                        ? "Home Service"
-                        : "In-shop"}
-                    </Text>
-                  </View>
+                <View className="bg-primary rounded-[4px] my-1 px-3 self-start">
+  <Text
+    style={{ fontFamily: "poppinsRegular" }}
+    className="text-[8px] mt-1 text-white"
+  >
+    {service?.vendor?.vendorOnboarding?.serviceType === "HOME_SERVICE"
+      ? "Home Service"
+      : "In-shop"}
+  </Text>
+</View>
                   <View className="flex-row items-center mt-1">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <MaterialIcons

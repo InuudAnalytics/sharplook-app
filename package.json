@@ -21,6 +21,7 @@
     "expo": "53.0.20",
     "expo-av": "^15.1.7",
     "expo-blur": "^14.1.5",
+    "expo-build-properties": "~0.14.8",
     "expo-constants": "~17.1.7",
     "expo-dev-client": "^5.2.4",
     "expo-device": "~7.1.4",
@@ -31,6 +32,7 @@
     "expo-location": "~18.1.6",
     "expo-notifications": "~0.31.4",
     "expo-status-bar": "~2.2.3",
+    "expo-updates": "~0.28.17",
     "formik": "^2.4.6",
     "lottie-react-native": "7.2.2",
     "nativewind": "^4.1.23",
@@ -47,11 +49,10 @@
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-toast-message": "^2.3.3",
+    "react-native-webrtc": "^124.0.7",
     "react-native-webview": "13.13.5",
     "socket.io-client": "^4.8.1",
-    "yup": "^1.6.1",
-    "expo-build-properties": "~0.14.8",
-    "expo-updates": "~0.28.17"
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

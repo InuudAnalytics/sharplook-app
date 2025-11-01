@@ -28,18 +28,20 @@ export default function ChatListScreen() {
   const [error, setError] = useState(null);
   const { navigateToChat } = useChatNavigation();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // ⭐ New state for unread counts per chat
+  const [unreadCounts, setUnreadCounts] = useState({});
+  
   const userId = user.id;
 
   // Hide bottom tab bar when this screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      // Hide the bottom tab bar
       navigation.getParent()?.setOptions({
         tabBarStyle: { display: "none" },
       });
 
       return () => {
-        // Show the bottom tab bar when leaving this screen
         navigation.getParent()?.setOptions({
           tabBarStyle: { backgroundColor: "#FFFAFD", borderTopWidth: 0 },
         });
@@ -52,7 +54,6 @@ export default function ChatListScreen() {
     setChatPreviews((prevPreviews) => {
       const updatedPreviews = { ...prevPreviews };
 
-      // Update the preview for the specific room
       if (updatedPreviews[newMessage.roomId]) {
         updatedPreviews[newMessage.roomId] = {
           ...updatedPreviews[newMessage.roomId],
@@ -66,7 +67,6 @@ export default function ChatListScreen() {
           senderId: newMessage.senderId,
         };
       } else {
-        // If no preview exists, create a basic one
         updatedPreviews[newMessage.roomId] = {
           roomId: newMessage.roomId,
           lastMessage: {
@@ -83,7 +83,15 @@ export default function ChatListScreen() {
       return updatedPreviews;
     });
 
-    // Also update the chats list to move the updated chat to the top
+    // ⭐ Update unread count if message is from another user
+    if (newMessage.senderId !== userId) {
+      setUnreadCounts((prevCounts) => ({
+        ...prevCounts,
+        [newMessage.roomId]: (prevCounts[newMessage.roomId] || 0) + 1,
+      }));
+    }
+
+    // Update the chats list to move the updated chat to the top
     setChats((prevChats) => {
       const updatedChats = [...prevChats];
       const chatIndex = updatedChats.findIndex(
@@ -91,7 +99,6 @@ export default function ChatListScreen() {
       );
 
       if (chatIndex !== -1) {
-        // Move the chat to the top
         const chat = updatedChats.splice(chatIndex, 1)[0];
         updatedChats.unshift(chat);
       }
@@ -100,21 +107,40 @@ export default function ChatListScreen() {
     });
   };
 
+  // ⭐ Fetch unread counts for all chats
+  const fetchUnreadCounts = async () => {
+    if (!userId) return;
+    
+    try {
+      const response = await HttpClient.get("/messages/client/unread-by-room");
+      
+      if (response.data.success && response.data.data.unreadByRoom) {
+        const countsMap = {};
+        response.data.data.unreadByRoom.forEach((item) => {
+          countsMap[item.roomId] = item.unreadCount;
+        });
+        setUnreadCounts(countsMap);
+      }
+    } catch (error) {
+      console.error("Error fetching unread counts:", error);
+    }
+  };
+
   // Fetch chat list from backend
   const fetchChats = async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
-    // HttpClient.get(`/messages/previews/${userId}`),
-    // HttpClient.get(`/messages/chats/${userId}`),
+    
     try {
       const [chatlistRes, chatPreviewRes] = await Promise.all([
         HttpClient.get(`/messages/user/getClientChatsList`),
         HttpClient.get(`/messages/client/previews`),
       ]);
+      
       setChats(chatlistRes.data.data || []);
 
-      // Create a map of chat previews by roomId for easy lookup
+      // Create a map of chat previews by roomId
       const previewsMap = {};
       if (chatPreviewRes.data.data) {
         chatPreviewRes.data.data.forEach((preview) => {
@@ -122,12 +148,17 @@ export default function ChatListScreen() {
         });
       }
       setChatPreviews(previewsMap);
+      
+      // ⭐ Fetch unread counts after getting chats
+      await fetchUnreadCounts();
+      
     } catch (err) {
       setError("Failed to load chats");
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (userId) {
       fetchChats();
@@ -141,17 +172,41 @@ export default function ChatListScreen() {
         updateChatPreview(msg);
       });
 
-      // Listen for message sent confirmations to update previews
+      // Listen for message sent confirmations
       socketRef.current.on("messageSent", (data) => {
         if (data.message) {
           updateChatPreview(data.message);
         }
       });
+
+      // ⭐ Listen for messages read event to update unread count
+      socketRef.current.on("messagesRead", ({ roomId, userId: readUserId }) => {
+        // If someone else read messages in a room we're viewing, update count
+        if (readUserId === userId) {
+          setUnreadCounts((prevCounts) => ({
+            ...prevCounts,
+            [roomId]: 0,
+          }));
+        }
+      });
+
+      // ⭐ Listen for unread count updates (real-time)
+      socketRef.current.on("unreadCountUpdate", ({ roomId, unreadCount }) => {
+        if (roomId) {
+          setUnreadCounts((prevCounts) => ({
+            ...prevCounts,
+            [roomId]: unreadCount,
+          }));
+        }
+      });
     }
+
     return () => {
       if (socketRef.current) {
         socketRef.current.off("newMessage");
         socketRef.current.off("messageSent");
+        socketRef.current.off("messagesRead");
+        socketRef.current.off("unreadCountUpdate");
         socketRef.current.disconnect();
       }
     };
@@ -191,6 +246,7 @@ export default function ChatListScreen() {
       </SafeAreaView>
     );
   }
+
   const filteredChats = chats.filter((chat) => {
     const vendorName = chat?.vendor?.name?.toLowerCase() || "";
     const lastMessage =
@@ -205,6 +261,7 @@ export default function ChatListScreen() {
       lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
+
   return (
     <SafeAreaView className="flex-1 bg-[#FFF8FB]">
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
@@ -229,6 +286,7 @@ export default function ChatListScreen() {
         {/* Right Spacer */}
         <View style={{ minWidth: 40 }} />
       </View>
+
       <View className="px-4 mt-4">
         <View className="flex-row items-center bg-white border border-[#F9BCDC] rounded-xl px-4 pt-3 pb-2">
           <MaterialIcons name="search" size={24} color="#8c817a" />
@@ -237,11 +295,12 @@ export default function ChatListScreen() {
             placeholder="Search messages"
             cursorColor="#BF6A37"
             value={searchQuery}
-            onChangeText={setSearchQuery} // ✅ updates searchQuery
+            onChangeText={setSearchQuery}
             style={{ fontFamily: "poppinsRegular" }}
           />
         </View>
       </View>
+
       <FlatList
         data={filteredChats}
         keyExtractor={(item) => item.id?.toString()}
@@ -262,26 +321,31 @@ export default function ChatListScreen() {
             preview?.senderId === userId ||
             item?.senderId === userId;
 
-          // Add "me:" prefix if it's the current user's message
-          const displayMessage =
-            isOwnMessage && lastMessage ? `me: ${lastMessage}` : lastMessage;
+          // ⭐ Get unread count for this chat
+          const unreadCount = unreadCounts[item.roomId] || 0;
 
           return (
             <TouchableOpacity
               className="flex-row border-b border-[#E5E5E5] items-center pb-3 mb-4"
-              onPress={() =>
+              onPress={() => {
+                // ⭐ Reset unread count when opening chat
+                setUnreadCounts((prevCounts) => ({
+                  ...prevCounts,
+                  [item.roomId]: 0,
+                }));
+                
                 navigateToChat(navigation, {
                   roomId: item.roomId,
                   receiverName: item?.vendor?.name,
                   receiverId: item?.vendor?.id,
-                  vendorPhone: item?.vendor?.phoneNumber, // Fixed: use phoneNumber instead of phone
-                  vendorAvatar: item?.vendor?.avatar, // Pass the vendor avatar
-                })
-              }
+                  vendorPhone: item?.vendor?.phoneNumber,
+                  vendorAvatar: item?.vendor?.avatar,
+                });
+              }}
             >
+              {/* Avatar */}
               <View className="w-14 h-14 border border-pinklight rounded-full bg-white items-center justify-center mr-4 overflow-hidden">
                 <Image
-                  className=""
                   source={
                     item?.vendor?.avatar
                       ? { uri: item?.vendor?.avatar }
@@ -291,17 +355,49 @@ export default function ChatListScreen() {
                   resizeMode="cover"
                 />
               </View>
+
+              {/* Chat Info */}
               <View className="flex-1 pb-3">
-                <Text
-                  className="text-lg font-semibold text-faintDark"
-                  style={{ fontFamily: "poppinsRegular" }}
-                >
-                  {item?.vendor?.name}
-                </Text>
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text
+                    className="text-lg font-semibold text-faintDark flex-1"
+                    style={{ fontFamily: "poppinsRegular" }}
+                    numberOfLines={1}
+                  >
+                    {item?.vendor?.name}
+                  </Text>
+                  
+                  {/* ⭐ Unread Badge - positioned next to name */}
+                  {unreadCount > 0 && (
+                    <View 
+                      className="ml-2 min-w-[30px] h-[22px] rounded-full bg-red-600 items-center justify-center px-1.5"
+                      style={{
+                        shadowColor: "#EB278D",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 1.5,
+                        elevation: 3,
+                      }}
+                    >
+                      <Text 
+                        className="text-[18px] text-white font-bold"
+                        style={{ fontFamily: "poppinsSemiBold" }}
+                      >
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Last Message */}
                 <Text
                   numberOfLines={1}
-                  className="text-sm text-[#A9A9A9] mt-1"
-                  style={{ fontFamily: "poppinsRegular" }}
+                  className={`text-sm mt-1 ${
+                    unreadCount > 0 ? "text-faintDark font-semibold" : "text-[#A9A9A9]"
+                  }`}
+                  style={{ 
+                    fontFamily: unreadCount > 0 ? "poppinsSemiBold" : "poppinsRegular" 
+                  }}
                 >
                   {isOwnMessage && lastMessage ? (
                     <>
@@ -309,10 +405,12 @@ export default function ChatListScreen() {
                       {lastMessage}
                     </>
                   ) : (
-                    displayMessage || "No messages yet"
+                    lastMessage || "No messages yet"
                   )}
                 </Text>
               </View>
+
+              {/* Timestamp */}
               <View className="ml-2">
                 <ChatTimestamp timestamp={messageTimestamp} />
               </View>
