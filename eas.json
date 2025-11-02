@@ -6,7 +6,10 @@
   "build": {
     "development": {
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "android": {
+        "withoutCredentials": true
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -20,6 +23,9 @@
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "apk"
       },
       "channel": "production"
     }
