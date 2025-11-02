@@ -86,9 +86,7 @@
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0",
-            "enableProguardInReleaseBuilds": false,
-            "enableShrinkResourcesInReleaseBuilds": false
+            "buildToolsVersion": "35.0.0"
           },
           "ios": {
             "useFrameworks": "static",
@@ -96,8 +94,6 @@
           }
         }
       ],
-      "./plugins/exclude-worklets",
-      "./plugins/proguard-worklets",
       [
         "@react-native-firebase/app"
       ],
@@ -119,6 +115,9 @@
       "eas": {
         "projectId": "4855c8a1-23d5-469c-b6b5-ce1671057df8"
       }
+    },
+    "hooks": {
+      "postPublish": []
     }
   }
 }
