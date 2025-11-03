@@ -7,24 +7,22 @@ import {
   Image,
   FlatList,
   Dimensions,
-  Animated, // <-- Add Animated import
+  Animated,
+  StatusBar,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { showToast } from "../../../ToastComponent/Toast";
 import { formatAmount } from "../../../formatAmount";
 import { HttpClient } from "../../../../api/HttpClient";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCart } from "../../../../context/CartContext";
 import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { ChatConnectionLoader } from "../../../reusuableComponents/ChatConnectionLoader";
-import { StatusBar } from "react-native";
 import { EmptyData } from "../../../reusuableComponents/EmptyData";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
 
-// SkeletonCard component for loading state
 const SkeletonCard = () => {
   const shimmer = React.useRef(new Animated.Value(0.3)).current;
 
@@ -134,7 +132,7 @@ const SkeletonCard = () => {
 
 export default function Market() {
   const navigation = useNavigation();
-  const { cartItems, fetchCart, loading: cartLoading } = useCart();
+  const { cartItems, fetchCart } = useCart();
   const { navigateToChat, isConnecting } = useChatNavigation();
 
   const [search, setSearch] = useState("");
@@ -142,7 +140,6 @@ export default function Market() {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState({});
 
-  // Helper to get all product IDs in cart
   const cartProductIds = cartItems.map(
     (item) =>
       item.product?.id ||
@@ -152,12 +149,41 @@ export default function Market() {
       item._id
   );
 
+  // Fetch products with ratings from new endpoint
   const fetch = async () => {
     setLoading(true);
     try {
-      // const res = await HttpClient.get("/products/getAllProducts");
-      const res = await HttpClient.get("/products/getAllProductsRatings");
-      setProducts(res.data.data || []);
+      // 1. Fetch all products
+      const productsRes = await HttpClient.get("/products/getAllProducts");
+      const productsData = Array.isArray(productsRes.data.data)
+        ? productsRes.data.data
+        : Array.isArray(productsRes.data.products?.data)
+        ? productsRes.data.products.data
+        : [];
+
+      // 2. Fetch ratings separately
+      const ratingsRes = await HttpClient.get("/products/getAllProductsRatings");
+      const ratingsData = Array.isArray(ratingsRes.data.data)
+        ? ratingsRes.data.data
+        : [];
+
+      // 3. Create a lookup map of product ID -> rating info
+      const ratingsMap = {};
+      ratingsData.forEach((ratingProduct) => {
+        const id = ratingProduct.id || ratingProduct._id;
+        ratingsMap[id] = ratingProduct.rating;
+      });
+
+      // 4. Merge rating into each product
+      const mergedProducts = productsData.map((product) => {
+        const id = product.id || product._id;
+        return {
+          ...product,
+          rating: ratingsMap[id] ?? null,
+        };
+      });
+
+      setProducts(mergedProducts);
     } catch (error) {
       const message = error.response?.data?.message || error.response?.message;
       if (error.response && error.response.data) {
@@ -167,12 +193,14 @@ export default function Market() {
       setLoading(false);
     }
   };
+
   useFocusEffect(
     useCallback(() => {
       fetch();
       fetchCart();
     }, [fetchCart])
   );
+
   const handleAddToCart = async (product) => {
     const productId = product.id || product._id;
     setAddingToCart((prev) => ({ ...prev, [productId]: true }));
@@ -181,7 +209,7 @@ export default function Market() {
       const res = await HttpClient.post("/client/addProductTocart", {
         productId: productId,
       });
-      await fetchCart(); // Refresh cart after adding
+      await fetchCart();
       showToast.success(res.data.message);
     } catch (error) {
       const message =
@@ -196,6 +224,7 @@ export default function Market() {
       });
     }
   };
+
   const handleProductPress = (product) => {
     navigation.navigate("ProductDetailsScreen", {
       product,
@@ -204,12 +233,13 @@ export default function Market() {
       addingToCart,
     });
   };
-  console.log({ products });
+
   const handleAddToCartFromModal = async (product, quantity) => {
     for (let i = 0; i < quantity; i++) {
       await handleAddToCart(product);
     }
   };
+
   const handleChatVendor = (product) => {
     const vendorId = product?.vendor?.id;
     const vendorName = product?.vendor?.vendorOnboarding?.businessName;
@@ -226,6 +256,7 @@ export default function Market() {
       });
     }
   };
+
   const filteredProducts = products.filter((item) => {
     const query = search.toLowerCase();
     return (
@@ -237,6 +268,36 @@ export default function Market() {
     );
   });
 
+  // Helper function to render stars with half stars support
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating || 0);
+    const halfStar = (rating || 0) - fullStars >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(
+        <Ionicons key={"full_" + i} name="star" size={14} color="#FFC107" />
+      );
+    }
+    if (halfStar) {
+      stars.push(
+        <Ionicons key="half" name="star-half" size={14} color="#FFC107" />
+      );
+    }
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(
+        <Ionicons
+          key={"empty_" + i}
+          name="star-outline"
+          size={14}
+          color="#FFC107"
+        />
+      );
+    }
+    return stars;
+  };
+
   const renderProduct = ({ item }) => {
     const productId = item.id || item._id;
     const isInCart = cartProductIds.includes(productId);
@@ -246,98 +307,76 @@ export default function Market() {
         onPress={() => handleProductPress(item)}
       >
         <StatusBar backgroundColor="#EB278D" barStyle="dark-content" />
-        {
-          <View
-            style={{ width: CARD_WIDTH, marginBottom: 18 }}
-            className="bg-white rounded-2xl shadow-sm overflow-hidden mr-3"
-          >
-            <Image
-              source={
-                item.picture
-                  ? { uri: item.picture }
-                  : require("../../../../assets/img/product1.jpg")
-              }
-              style={{ width: "100%", height: 110 }}
-              resizeMode="cover"
-            />
-            <View className="p-3">
+        <View
+          style={{ width: CARD_WIDTH, marginBottom: 18 }}
+          className="bg-white rounded-2xl shadow-sm overflow-hidden mr-3"
+        >
+          <Image
+            source={
+              item.picture
+                ? { uri: item.picture }
+                : require("../../../../assets/img/product1.jpg")
+            }
+            style={{ width: "100%", height: 110 }}
+            resizeMode="cover"
+          />
+          <View className="p-3">
+            <Text
+              style={{ fontFamily: "latoBold" }}
+              className="text-[18px] text-faintDark mb-1"
+            >
+              {item.productName || item.title}
+            </Text>
+            <View className="flex-row items-center justify-between">
               <Text
                 style={{ fontFamily: "latoBold" }}
-                className="text-[18px] text-faintDark mb-1"
+                className="text-[12px] w-[80%] my-2"
               >
-                {item.productName || item.title}
+                Vendor: {item?.vendor?.vendorOnboarding?.businessName}
               </Text>
-              <View className="flex-row items-center justify-between">
-                <Text
-                  style={{ fontFamily: "latoBold" }}
-                  className="text-[12px] w-[80%] my-2"
-                >
-                  Vendor: {item?.vendor?.vendorOnboarding?.businessName}
-                </Text>
-                <TouchableOpacity
-                  className=""
-                  onPress={() => handleChatVendor(item)}
-                >
-                  <MaterialIcons name="chat" size={20} color="#EB278D" />
-                </TouchableOpacity>
-              </View>
-              <Text
-                style={{ fontFamily: "latoBold" }}
-                className="text-[15px] text-faintDark mb-1"
-              >
-                {formatAmount(item.price)}
-              </Text>
-              <View className="flex-row items-center justify-between mt-1">
-                <View className="flex-row items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Ionicons
-                      key={i}
-                      name={
-                        i < Math.floor(item.rating || 0)
-                          ? "star"
-                          : "star-outline"
-                      }
-                      size={14}
-                      color="#FFC107"
-                    />
-                  ))}
-                  <Text
-                    style={{ fontFamily: "latoRegular" }}
-                    className="text-[12px] ml-1 text-[#A9A9A9]"
-                  >
-                    {(item.reviews || 0).toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                disabled={addingToCart[productId] || isInCart}
-                className={` py-2 rounded-[8px] mt-3 ${addingToCart[productId] ? "opacity-50" : ""} ${isInCart ? "border border-primary" : "bg-primary"}`}
-                onPress={() => handleAddToCart(item)}
-              >
-                <Text
-                  style={{ fontFamily: "poppinsRegular" }}
-                  className={`text-[13px] text-center  ${isInCart ? "text-primary" : "text-white"}`}
-                >
-                  {isInCart
-                    ? "Added to Cart"
-                    : addingToCart[productId]
-                      ? "Adding..."
-                      : "Add to Cart"}
-                </Text>
+              <TouchableOpacity onPress={() => handleChatVendor(item)}>
+                <MaterialIcons name="chat" size={20} color="#EB278D" />
               </TouchableOpacity>
             </View>
+            <Text
+              style={{ fontFamily: "latoBold" }}
+              className="text-[15px] text-faintDark mb-1"
+            >
+              {formatAmount(item.price)}
+            </Text>
+            <View className="flex-row items-center justify-start mt-1">
+              {renderStars(item.rating)}
+            </View>
+            <TouchableOpacity
+              disabled={addingToCart[productId] || isInCart}
+              className={`py-2 rounded-[8px] mt-3 ${
+                addingToCart[productId] ? "opacity-50" : ""
+              } ${isInCart ? "border border-primary" : "bg-primary"}`}
+              onPress={() => handleAddToCart(item)}
+            >
+              <Text
+                style={{ fontFamily: "poppinsRegular" }}
+                className={`text-[13px] text-center  ${
+                  isInCart ? "text-primary" : "text-white"
+                }`}
+              >
+                {isInCart
+                  ? "Added to Cart"
+                  : addingToCart[productId]
+                  ? "Adding..."
+                  : "Add to Cart"}
+              </Text>
+            </TouchableOpacity>
           </View>
-        }
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
     <View className="flex-1 bg-secondary">
-      {/* Chat Connection Loader */}
       <ChatConnectionLoader visible={isConnecting} />
 
-      {/* Top Bar */}
       <View className="pt-[60px] pb-[10px] mb-6 shadow-sm items-center justify-between flex-row bg-secondary px-4">
         <View style={{ width: 26 }} />
         <Text
@@ -366,14 +405,16 @@ export default function Market() {
                 paddingHorizontal: 3,
               }}
             >
-              <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>
+              <Text
+                style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}
+              >
                 {cartItems.length}
               </Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
-      {/* Search Bar & Filter */}
+
       <View className="flex-row items-center px-4 mt-2 mb-2">
         <View className="flex-row items-center flex-1 bg-secondary border border-[#F9BCDC] rounded-xl px-4 mr-3">
           <MaterialIcons name="search" size={22} color="#8c817a" />
@@ -387,7 +428,7 @@ export default function Market() {
           />
         </View>
       </View>
-      {/* Item Count & Filter */}
+
       <View className="flex-row items-center justify-between px-4 my-5">
         <Text
           className="text-[18px] text-faintDark"
@@ -396,7 +437,7 @@ export default function Market() {
           {filteredProducts.length.toLocaleString()} Items
         </Text>
       </View>
-      {/* Product Grid */}
+
       {loading ? (
         <FlatList
           data={Array.from({ length: 6 })}
@@ -420,7 +461,6 @@ export default function Market() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
         />
       )}
-      {/* ProductDetailsModal removed - now using ProductDetailsScreen */}
     </View>
   );
 }

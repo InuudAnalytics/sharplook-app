@@ -4,7 +4,7 @@ import { View, Text } from "react-native";
 import {
   MaterialIcons,
   Ionicons,
-  FontAwesome6,
+  FontAwesome5,  // CHANGED from FontAwesome6
   AntDesign,
 } from "@expo/vector-icons";
 import HomeStack from "./Home/HomeStack";
@@ -23,10 +23,10 @@ export default function ClientBottomNav() {
         tabBarIcon: ({ color, size }) => {
           if (route.name === "Home") {
             return (
-              <FontAwesome6 name="fire-flame-curved" size={24} color={color} />
+              <FontAwesome5 name="fire" size={24} color={color} />  // CHANGED
             );
           } else if (route.name === "Market") {
-            return <FontAwesome6 name="shop" size={size} color={color} />;
+            return <FontAwesome5 name="store" size={size} color={color} />;  // CHANGED
           } else if (route.name === "Bookings") {
             return <MaterialIcons name="event" size={size} color={color} />;
           } else if (route.name === "Notification") {
@@ -44,7 +44,7 @@ export default function ClientBottomNav() {
         tabBarActiveTintColor: "#EB278D",
         tabBarInactiveTintColor: "#00000099",
         tabBarStyle: { backgroundColor: "#FFFAFD", borderTopWidth: 0 },
-        tabBarPressColor: "#EB278D", // <-- Ripple color for Android
+        tabBarPressColor: "#EB278D",
         tabBarPressOpacity: 0.7,
       })}
     >

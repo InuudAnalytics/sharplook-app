@@ -554,13 +554,13 @@ export default function HomeScreen() {
                             });
                           }}
                         >
-                          <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
-                            <Ionicons
-                              name="sparkles"
-                              size={24}
-                              color="#EB278D"
-                            />
-                          </View>
+   <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
+  <MaterialCommunityIcons
+    name="shimmer"
+    size={24}
+    color="#EB278D"
+  />
+</View>
                           <Text
                             style={{ fontFamily: "latoRegular" }}
                             className="text-[12px] text-faintDark text-center mt-0.5"
