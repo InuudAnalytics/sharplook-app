@@ -6,7 +6,7 @@ import Logo from "../../../assets/img/logo/sharplooklogo.svg";
 import FBicon from "../../../assets/img/logo/fbicon.svg";
 import Twittericon from "../../../assets/img/logo/twittericon.svg";
 import Appleicon from "../../../assets/img/logo/appleicon.svg";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AuthButton from "../../reusuableComponents/buttons/AuthButton";
 import { useStatusBar } from "../../../context/StatusBarContext";
 import { loginSchema } from "../../../utils/validationSchemas";
@@ -14,7 +14,7 @@ import { HttpClient } from "../../../api/HttpClient";
 import { showToast } from "../../ToastComponent/Toast";
 import { useAuth } from "../../../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
+// import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 export default function LoginScreen({ navigation }) {
@@ -204,7 +204,7 @@ export default function LoginScreen({ navigation }) {
           );
         }}
       </Formik>
-      <LoaderOverlay visible={isLoading} />
+      {/* <LoaderOverlay visible={isLoading} /> */}
     </View>
   );
 }

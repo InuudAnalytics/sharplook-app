@@ -22,7 +22,7 @@ import { clientRegisterSchema } from "../../../utils/validationSchemas";
 import { showToast } from "../../ToastComponent/Toast";
 import { HttpClient } from "../../../api/HttpClient";
 import { isAxiosError } from "axios";
-import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
+// import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
 import { PhoneInput } from "../../reusuableComponents/inputFields/PhoneInput";
 export default function RegisterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
@@ -264,7 +264,7 @@ export default function RegisterScreen({ navigation }) {
           </Formik>
         </View>
       </ScrollView>
-      <LoaderOverlay visible={loading} />
+      {/* <LoaderOverlay visible={loading} /> */}
     </KeyboardAvoidingView>
   );
 }
