@@ -108,24 +108,24 @@ export default function HomeScreen() {
   const [nearbyVendors, setNearbyVendors] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  
+
   // ⭐ New state for unread message count
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingUnread, setLoadingUnread] = useState(true);
-  
+
   const searchInputRef = React.useRef(null);
   const { navigateToChatList } = useChatNavigation();
   const { categories, loading: categoriesLoading } = useCategories();
   const { filterVendors, filters } = useFilter();
   const { cartItems, fetchCart, loading: cartLoading } = useCart();
   const [addingToCart, setAddingToCart] = useState({});
-  
+
   const toggleSearchBar = () => {
     setIsSearchBarActive(!isSearchBarActive);
     setSearchInput("");
     setFilteredVendors([]);
   };
-  
+
   const user = useAuth();
 
   // ⭐ Function to fetch unread message count
@@ -133,7 +133,7 @@ export default function HomeScreen() {
     try {
       setLoadingUnread(true);
       const response = await HttpClient.get("/messages/unread/count");
-      
+
       if (response.data.success) {
         // ⭐ Fixed: response.data.data is the count directly, not an object
         setUnreadCount(response.data.data || 0);
@@ -150,7 +150,7 @@ export default function HomeScreen() {
     useCallback(() => {
       fetchCart();
       fetchUnreadCount(); // ⭐ Fetch unread count when screen focuses
-      
+
       const fetchRecommendedProducts = async () => {
         setLoadingProducts(true);
         try {
@@ -163,7 +163,7 @@ export default function HomeScreen() {
           setLoadingProducts(false);
         }
       };
-      
+
       const fetchTopVendors = async () => {
         setLoadingVendors(true);
         try {
@@ -174,7 +174,7 @@ export default function HomeScreen() {
           setLoadingVendors(false);
         }
       };
-      
+
       const fetchAllServices = async () => {
         setLoadingServices(true);
         try {
@@ -185,7 +185,7 @@ export default function HomeScreen() {
           setLoadingServices(false);
         }
       };
-      
+
       const fetchNearbyVendors = async () => {
         setLoadingNearby(true);
         try {
@@ -214,7 +214,7 @@ export default function HomeScreen() {
           setLoadingNearby(false);
         }
       };
-      
+
       fetchRecommendedProducts();
       fetchTopVendors();
       fetchAllServices();
@@ -239,7 +239,7 @@ export default function HomeScreen() {
   }, [searchInput, topVendors]);
 
   const currentUser = user.user;
-  
+
   const handleProductPress = (product) => {
     navigation.navigate("ProductDetailsScreen", {
       product,
@@ -248,7 +248,7 @@ export default function HomeScreen() {
       addingToCart,
     });
   };
-  
+
   const cartProductIds = cartItems.map(
     (item) =>
       item.product?.id ||
@@ -257,7 +257,7 @@ export default function HomeScreen() {
       item.id ||
       item._id
   );
-  
+
   const handleAddToCart = async (product) => {
     const productId = product.id || product._id;
 
@@ -281,13 +281,15 @@ export default function HomeScreen() {
       });
     }
   };
-  
+
   const handleAddToCartFromModal = async (product, quantity) => {
     for (let i = 0; i < quantity; i++) {
       await handleAddToCart(product);
     }
   };
-  
+
+  // console.log("categories", categories);
+
   return (
     <View className="flex-1 bg-secondary" style={{ position: "relative" }}>
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
@@ -297,14 +299,12 @@ export default function HomeScreen() {
           <View>
             <Text
               style={{ fontFamily: "poppinsSemiBold" }}
-              className="text-[18px]"
-            >
+              className="text-[18px]">
               Hello {currentUser.firstName}
             </Text>
             <Text
               style={{ fontFamily: "poppinsRegular" }}
-              className="text-[14px]"
-            >
+              className="text-[14px]">
               Welcome to Sharplook
             </Text>
           </View>
@@ -316,11 +316,10 @@ export default function HomeScreen() {
                 navigateToChatList(navigation);
                 // Reset unread count when navigating to chat
                 setUnreadCount(0);
-              }}
-            >
+              }}>
               <Entypo name="chat" size={24} color="#EB278f" />
               {unreadCount > 0 && (
-                <View 
+                <View
                   className="absolute -top-2 -right-2 min-w-[20px] h-5 rounded-full bg-red-600 items-center justify-center px-1.5"
                   style={{
                     shadowColor: "#cd1717ff",
@@ -328,22 +327,19 @@ export default function HomeScreen() {
                     shadowOpacity: 0.5,
                     shadowRadius: 1.8,
                     elevation: 3,
-                  }}
-                >
-                  <Text 
+                  }}>
+                  <Text
                     className="text-[20px] text-white font-bold"
-                    style={{ fontFamily: "poppinsSemiBold" }}
-                  >
+                    style={{ fontFamily: "poppinsSemiBold" }}>
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </Text>
                 </View>
               )}
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               className="relative"
-              onPress={() => navigation.navigate("CartScreen")}
-            >
+              onPress={() => navigation.navigate("CartScreen")}>
               <Feather name="shopping-cart" size={24} color="#EB278D" />
               {cartItems.length > 0 && (
                 <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center">
@@ -353,7 +349,7 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            
+
             <TouchableOpacity onPress={() => navigation.openDrawer()}>
               <Menu width={30} height={30} />
             </TouchableOpacity>
@@ -395,15 +391,14 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
-        
+
         {/* Filter Summary */}
         {(filters.rating || filters.serviceType) && (
           <View className="px-4 mt-2">
             <View className="bg-[#FCE4F0] rounded-lg p-3">
               <Text
                 style={{ fontFamily: "poppinsMedium" }}
-                className="text-[14px] text-primary mb-1"
-              >
+                className="text-[14px] text-primary mb-1">
                 Active Filters:
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -411,8 +406,7 @@ export default function HomeScreen() {
                   <View className="bg-primary rounded-full px-3 py-1">
                     <Text
                       style={{ fontFamily: "poppinsRegular" }}
-                      className="text-[12px] text-white"
-                    >
+                      className="text-[12px] text-white">
                       {filters.rating}+ Stars
                     </Text>
                   </View>
@@ -421,8 +415,7 @@ export default function HomeScreen() {
                   <View className="bg-primary rounded-full px-3 py-1">
                     <Text
                       style={{ fontFamily: "poppinsRegular" }}
-                      className="text-[12px] text-white"
-                    >
+                      className="text-[12px] text-white">
                       {filters.serviceType === "HOME_SERVICE"
                         ? "Home Service"
                         : "In-shop"}
@@ -433,7 +426,7 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-        
+
         {/* Categories or Search Results */}
         {isSearchBarActive ? (
           <ScrollView className="mt-8 px-4 space-y-4" style={{ zIndex: 20 }}>
@@ -442,8 +435,7 @@ export default function HomeScreen() {
                 <EmptySVG width={120} height={120} />
                 <Text
                   className="text-[16px] text-gray-400 mt-2"
-                  style={{ fontFamily: "poppinsRegular" }}
-                >
+                  style={{ fontFamily: "poppinsRegular" }}>
                   No vendors found
                 </Text>
               </View>
@@ -463,8 +455,7 @@ export default function HomeScreen() {
                     }
                   }}
                   className="bg-[#FCDFEE] mb-6 rounded-2xl overflow-hidden shadow-md"
-                  style={{ elevation: 2 }}
-                >
+                  style={{ elevation: 2 }}>
                   <View style={{ height: 150, width: "100%" }}>
                     <Image
                       source={
@@ -477,15 +468,13 @@ export default function HomeScreen() {
                   <View className="p-4">
                     <Text
                       className="text-lg font-medium text-faintDark"
-                      style={{ fontFamily: "poppinsRegular" }}
-                    >
+                      style={{ fontFamily: "poppinsRegular" }}>
                       {vendor?.vendorOnboarding?.businessName}
                     </Text>
                     <View className="bg-primary rounded-[4px] my-1 px-3 self-start">
                       <Text
                         style={{ fontFamily: "poppinsRegular" }}
-                        className="text-[10px] mt-1 text-white"
-                      >
+                        className="text-[10px] mt-1 text-white">
                         {vendor?.vendorOnboarding?.serviceType ===
                         "HOME_SERVICE"
                           ? "Home Service"
@@ -507,8 +496,7 @@ export default function HomeScreen() {
                       ))}
                       <Text
                         style={{ fontFamily: "poppinsRegular" }}
-                        className="text-[12px] text-fadedDark mt-1 ml-1"
-                      >
+                        className="text-[12px] text-fadedDark mt-1 ml-1">
                         {vendor.rating?.toFixed(1)}
                       </Text>
                     </View>
@@ -552,19 +540,17 @@ export default function HomeScreen() {
                               services: filteredServices,
                               nearbyVendors: filteredNearby,
                             });
-                          }}
-                        >
-   <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
-  <MaterialCommunityIcons
-    name="shimmer"
-    size={24}
-    color="#EB278D"
-  />
-</View>
+                          }}>
+                          <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
+                            <MaterialCommunityIcons
+                              name="shimmer"
+                              size={24}
+                              color="#EB278D"
+                            />
+                          </View>
                           <Text
                             style={{ fontFamily: "latoRegular" }}
-                            className="text-[12px] text-faintDark text-center mt-0.5"
-                          >
+                            className="text-[12px] text-faintDark text-center mt-0.5">
                             {cat.name}
                           </Text>
                         </TouchableOpacity>
@@ -576,8 +562,7 @@ export default function HomeScreen() {
                           navigation.navigate("OtherScreen", {
                             allServices: allServices,
                           });
-                        }}
-                      >
+                        }}>
                         <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
                           <Ionicons
                             name="ellipsis-horizontal"
@@ -587,45 +572,40 @@ export default function HomeScreen() {
                         </View>
                         <Text
                           style={{ fontFamily: "latoRegular" }}
-                          className="text-[12px] text-faintDark text-center mt-0.5"
-                        >
+                          className="text-[12px] text-faintDark text-center mt-0.5">
                           View All
                         </Text>
                       </TouchableOpacity>,
                     ];
                   })()}
             </View>
-            
+
             {/* Top Vendors */}
             <View className="flex-row items-center justify-between mt-8 mb-4 px-5">
               <Text
                 style={{ fontFamily: "poppinsMedium" }}
-                className="text-[16px] text-fadedDark"
-              >
+                className="text-[16px] text-fadedDark">
                 Top Vendors
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => {
                   navigation.navigate("AllVendorsScreen", {
-                    title: "All Vendors"
+                    title: "All Vendors",
                   });
-                }}
-              >
+                }}>
                 <Text
                   style={{ fontFamily: "poppinsMedium" }}
-                  className="text-[14px] text-primary"
-                >
+                  className="text-[14px] text-primary">
                   View All Vendors
                 </Text>
               </TouchableOpacity>
             </View>
-            
+
             {loadingVendors ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={{ paddingLeft: 20 }}
-              >
+                style={{ paddingLeft: 20 }}>
                 {[1, 2, 3].map((_, idx) => (
                   <SkeletonBox key={idx} width={125} height={160} />
                 ))}
@@ -643,8 +623,7 @@ export default function HomeScreen() {
                       <EmptySVG width={120} height={120} />
                       <Text
                         className="text-[14px] text-gray-400 mt-2"
-                        style={{ fontFamily: "poppinsRegular" }}
-                      >
+                        style={{ fontFamily: "poppinsRegular" }}>
                         {filters.rating || filters.serviceType
                           ? "No vendors match your filters"
                           : "No Top Vendors"}
@@ -657,8 +636,7 @@ export default function HomeScreen() {
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    style={{ paddingLeft: 20 }}
-                  >
+                    style={{ paddingLeft: 20 }}>
                     {filteredVendors.map((vendor, idx) => (
                       <Pressable
                         onPress={() =>
@@ -667,8 +645,7 @@ export default function HomeScreen() {
                           })
                         }
                         key={vendor.id || idx}
-                        className="w-[125px] bg-white rounded-2xl mr-3 py-4 shadow-sm overflow-hidden"
-                      >
+                        className="w-[125px] bg-white rounded-2xl mr-3 py-4 shadow-sm overflow-hidden">
                         <Image
                           source={
                             vendor.avatar
@@ -686,15 +663,13 @@ export default function HomeScreen() {
                         <View className="px-[10px]">
                           <Text
                             style={{ fontFamily: "poppinsRegular" }}
-                            className="text-[12px] text-fadedDark mt-0.5"
-                          >
+                            className="text-[12px] text-fadedDark mt-0.5">
                             {vendor?.vendorOnboarding?.businessName}
                           </Text>
                           <View className="bg-primary rounded-[4px] my-1 px-3 self-start">
                             <Text
                               style={{ fontFamily: "poppinsRegular" }}
-                              className="text-[8px] mt-1 text-white"
-                            >
+                              className="text-[8px] mt-1 text-white">
                               {vendor?.vendorOnboarding?.serviceType ===
                               "HOME_SERVICE"
                                 ? "Home Service"
@@ -716,8 +691,7 @@ export default function HomeScreen() {
                             ))}
                             <Text
                               style={{ fontFamily: "poppinsRegular" }}
-                              className="text-[12px] text-fadedDark mt-1 ml-1"
-                            >
+                              className="text-[12px] text-fadedDark mt-1 ml-1">
                               {vendor?.rating?.toFixed(1)}
                             </Text>
                           </View>
@@ -733,8 +707,7 @@ export default function HomeScreen() {
             <View className="flex-row items-center justify-between mt-8 px-5">
               <Text
                 style={{ fontFamily: "poppinsMedium" }}
-                className="text-[16px] text-fadedDark"
-              >
+                className="text-[16px] text-fadedDark">
                 Recommended Products
               </Text>
             </View>
@@ -742,8 +715,7 @@ export default function HomeScreen() {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={{ paddingLeft: 20 }}
-              >
+                style={{ paddingLeft: 20 }}>
                 {[1, 2, 3].map((_, idx) => (
                   <SkeletonBox key={idx} width={220} height={202} />
                 ))}
@@ -753,8 +725,7 @@ export default function HomeScreen() {
                 <EmptySVG width={120} height={120} />
                 <Text
                   className="text-[14px] text-gray-400 mt-2"
-                  style={{ fontFamily: "poppinsRegular" }}
-                >
+                  style={{ fontFamily: "poppinsRegular" }}>
                   No recommended products
                 </Text>
               </View>
@@ -763,15 +734,13 @@ export default function HomeScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ paddingLeft: 20 }}
-                className="flex-row px-5 mt-4"
-              >
+                className="flex-row px-5 mt-4">
                 {recommendedProducts.map((prod, idx) => (
                   <TouchableOpacity
                     activeOpacity={0.9}
                     onPress={() => handleProductPress(prod)}
                     key={prod.id || idx}
-                    className="rounded-[4px] mr-4 items-center justify-center w-[220px] h-[202px] overflow-hidden shadow-sm"
-                  >
+                    className="rounded-[4px] mr-4 items-center justify-center w-[220px] h-[202px] overflow-hidden shadow-sm">
                     <Image
                       source={{ uri: prod.picture }}
                       style={{ width: "100%", height: "100%" }}
@@ -784,7 +753,7 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
-      
+
       {/* Overlay to close search bar */}
       {isSearchBarActive && (
         <Pressable
