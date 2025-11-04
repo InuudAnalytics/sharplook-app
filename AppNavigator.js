@@ -3,13 +3,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SplashScreen from "./components/screens/shared/SplashScreen";
 import LoginScreen from "./components/screens/shared/LoginScreen";
 import RegisterScreen from "./components/screens/shared/RegisterScreen";
-import ClientNavigator from "./components/screens/client/ClientNavigator";  // COMMENTED OUT
-// import VendorNavigator from "./components/screens/vendor/VendorNavigator";  // COMMENTED OUT
+import ClientNavigator from "./components/screens/client/ClientNavigator";
+import VendorNavigator from "./components/screens/vendor/VendorNavigator";
 import OnboardingScreen from "./components/screens/shared/OnboardingScreen";
 import VendorLoginScreen from "./components/screens/vendor/auth/LoginScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { useCustomFonts } from "./hooks/useFonts";
-import { View, ActivityIndicator, Text } from "react-native";  // ADD Text
+import { View, ActivityIndicator } from "react-native";
 import ForgotPasswordScreen from "./components/screens/shared/ForgotPasswordScreen";
 import EmailVerificationScreen from "./components/screens/shared/EmailVerificationScreen";
 import ResetPasswordScreen from "./components/screens/shared/ResetPasswordScreen";
@@ -33,29 +33,6 @@ import AuthTermsOfUse from "./components/screens/shared/TermsOfUse";
 import notificationService from "./utils/notificationService";
 
 const Stack = createNativeStackNavigator();
-
-// ADD PLACEHOLDER COMPONENTS
-const ClientNavigatorPlaceholder = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#EB278D' }}>
-      Client App Loading...
-    </Text>
-    <Text style={{ marginTop: 10, color: '#666' }}>
-      Fixing navigation issue
-    </Text>
-  </View>
-);
-
-const VendorNavigatorPlaceholder = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#EB278D' }}>
-      Vendor App Loading...
-    </Text>
-    <Text style={{ marginTop: 10, color: '#666' }}>
-      Fixing navigation issue
-    </Text>
-  </View>
-);
 
 export default function AppNavigator({ linking }) {
   const { isAuthenticated, userType, isLoading } = useAuth();
@@ -98,12 +75,12 @@ export default function AppNavigator({ linking }) {
             {userType === "CLIENT" ? (
               <>
                 <Stack.Screen name="ClientApp" options={{ headerShown: false }}>
-  {() => (
-    <ProtectedRoute allowedUserTypes={["CLIENT"]}>
-      <ClientNavigator />  {/* CHANGED */}
-    </ProtectedRoute>
-  )}
-</Stack.Screen>
+                  {() => (
+                    <ProtectedRoute allowedUserTypes={["CLIENT"]}>
+                      <ClientNavigator />
+                    </ProtectedRoute>
+                  )}
+                </Stack.Screen>
                 <Stack.Screen
                   name="CallScreen"
                   component={CallScreen}
@@ -115,7 +92,7 @@ export default function AppNavigator({ linking }) {
                 <Stack.Screen name="VendorApp" options={{ headerShown: false }}>
                   {() => (
                     <ProtectedRoute allowedUserTypes={["VENDOR"]}>
-                      <VendorNavigatorPlaceholder />  {/* REPLACED */}
+                      <VendorNavigator />
                     </ProtectedRoute>
                   )}
                 </Stack.Screen>
@@ -237,6 +214,19 @@ export default function AppNavigator({ linking }) {
             />
           </>
         )}
+        {/* 
+        <Stack.Screen
+          name="Client"
+          component={ClientNavigator}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Vendor"
+          component={VendorNavigator}
+          options={{ headerShown: false }}
+        />
+
+        */}
       </Stack.Navigator>
     </NavigationContainer>
   );

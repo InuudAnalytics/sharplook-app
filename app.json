@@ -7,6 +7,9 @@
     "icon": "./assets/icon/app-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "image": "./assets/icon/sharplooklogo.png",
       "resizeMode": "contain",
@@ -27,7 +30,6 @@
         "NSPhotoLibraryUsageDescription": "This app uses your photo library to allow you to select and upload profile and service photos.",
         "NSPhotoLibraryAddUsageDescription": "This app saves photos to your library for profile pictures and service images.",
         "UIBackgroundModes": [
-          "remote-notification",
           "remote-notification"
         ],
         "NSUserNotificationsUsageDescription": "This app uses notifications to keep you updated about bookings, messages, and important updates.",
@@ -54,7 +56,7 @@
         "SYSTEM_ALERT_WINDOW",
         "ACCESS_NETWORK_STATE"
       ],
-      "versionCode": 46,
+      "versionCode": 47,
       "useNextNotificationsApi": true,
       "googleServicesFile": "./google-services.json",
       "allowBackup": true,
@@ -115,9 +117,6 @@
       "eas": {
         "projectId": "4855c8a1-23d5-469c-b6b5-ce1671057df8"
       }
-    },
-    "hooks": {
-      "postPublish": []
     }
   }
 }
