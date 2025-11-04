@@ -9,7 +9,6 @@
     "web": "expo start --web",
     "fix-worklets": "node scripts/fix-worklets.js",
     "postinstall": "node scripts/fix-worklets.js"
-
   },
   "dependencies": {
     "@expo/config-plugins": "^54.0.2",

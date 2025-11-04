@@ -76,6 +76,8 @@
     },
     "plugins": [
       "expo-font",
+      "./plugins/fix-ionicons",
+
       [
         "expo-notifications",
         {
