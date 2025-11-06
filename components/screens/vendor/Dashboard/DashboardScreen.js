@@ -19,6 +19,15 @@ import { useFocusEffect } from "@react-navigation/native";
 import { DateConverter } from "../../../reusuableComponents/DateConverter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import Menu from '../../../../assets/icon/menu.svg'
+import Chat from '../../../../assets/icon/chat.svg'
+import Bell from '../../../../assets/icon/bell.svg'
+import Eye from '../../../../assets/icon/eye.svg'
+import Eyesoff from '../../../../assets/icon/eye-off.svg'
+import Right from '../../../../assets/icon/right.svg'
+import Down from '../../../../assets/icon/arrow-down.svg'
+import Up from '../../../../assets/icon/arrow-up.svg'
+
 // Skeleton Loader Component
 function SkeletonLoader() {
   const shimmerAnim = React.useRef(new Animated.Value(0.3)).current;
@@ -312,16 +321,16 @@ export default function DashboardScreen({ navigation }) {
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-[40px] pb-4 bg-white">
         <TouchableOpacity onPress={() => navigation.getParent()?.openDrawer()}>
-          <MenuOpen width={30} height={30} />
+          <Menu stroke='#eb278d'/>
         </TouchableOpacity>
         <View className="flex-row items-center gap-4">
           <TouchableOpacity
             onPress={() => navigation.navigate("VendorChatListScreen")}
           >
-            <ChatIcon width={24} height={24} />
+            <Chat stroke='#eb278d' width={40} height={30}/>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Notification")}>
-            <Ionicons name="notifications-outline" size={22} color="#eb278d" />
+            <Bell name="notifications-outline" size={22} color="#eb278d" width={40} height={25} />
           </TouchableOpacity>
         </View>
       </View>
@@ -360,11 +369,8 @@ export default function DashboardScreen({ navigation }) {
               Available Balance
             </Text>
             <TouchableOpacity onPress={toggleShowBalance}>
-              <Ionicons
-                name={isShowBalance ? "eye-off" : "eye"}
-                size={20}
-                color="#FFFFFF80"
-              />
+              
+                {isShowBalance ? <Eyesoff stroke='#d4c1ca' width={20} height={15}/> : <Eye stroke='#d4c1ca'  width={20} height={15}/>}
             </TouchableOpacity>
           </View>
           <TouchableOpacity
@@ -375,9 +381,9 @@ export default function DashboardScreen({ navigation }) {
               className="text-white text-[12px] opacity-80 mr-1"
               style={{ fontFamily: "latoBold" }}
             >
-              Transaction History
+              Transaction History 
             </Text>
-            <Ionicons name="chevron-forward" size={16} color="#FFFFFF80" />
+            <Right name="chevron-forward" width={20} height={20} color="#FFFFFF80" />
           </TouchableOpacity>
         </View>
         <View style={{ height: 40, justifyContent: "center" }}>
@@ -408,7 +414,7 @@ export default function DashboardScreen({ navigation }) {
             className="items-center flex-1"
             style={{ gap: 4 }}
           >
-            <MaterialIcons name="file-download" size={28} color="white" />
+            <Down size={28} color="white" />
             <Text
               style={{ fontFamily: "latoRegular" }}
               className="text-white text-[14px] mt-1"
@@ -421,7 +427,7 @@ export default function DashboardScreen({ navigation }) {
             style={{ gap: 4 }}
             onPress={() => navigation.navigate("Withdraw")}
           >
-            <MaterialIcons name="file-upload" size={28} color="white" />
+            <Up size={28} color="white" />
             <Text
               style={{ fontFamily: "latoRegular" }}
               className="text-white text-[14px] mt-1"

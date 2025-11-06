@@ -16,6 +16,12 @@ import VendorProfileScreen from "./VendorProfileScreen";
 import MyServicesScreen from "./MyServicesScreen";
 import DashboardStack from "./Dashboard/DashboardStack";
 
+import User from '../../../assets/icon/user.svg'
+import Services from '../../../assets/icon/smile.svg'
+import Products from '../../../assets/icon/archive.svg'
+import Bookings from '../../../assets/icon/calendar.svg'
+import Dashboard from '../../../assets/icon/home.svg'
+
 const Tab = createBottomTabNavigator();
 
 export default function VendorBottomNav() {
@@ -25,15 +31,15 @@ export default function VendorBottomNav() {
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
           if (route.name === "Dashboard") {
-            return <MaterialIcons name="dashboard" size={size} color={color} />;
+            return <Dashboard name="dashboard" size={size} color={color} />;
           } else if (route.name === "Bookings") {
-            return <MaterialIcons name="event" size={size} color={color} />;
+            return <Bookings name="event" size={size} color={color} />;
           } else if (route.name === "My Products") {
-            return <MaterialIcons name="inventory" size={size} color={color} />;
+            return <Products name="inventory" size={size} color={color} />;
           } else if (route.name === "My Services") {
-            return <MaterialIcons name="face" size={size} color={color} />;
+            return <Services name="face" size={size} color={color} />;
           } else if (route.name === "Profile") {
-            return <AntDesign name="user" size={24} color={color} />;
+            return <User name="user" size={24} color={color} />;
           }
         },
         tabBarActiveTintColor: "#EB278D",
