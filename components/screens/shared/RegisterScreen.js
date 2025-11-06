@@ -24,6 +24,8 @@ import { HttpClient } from "../../../api/HttpClient";
 import { isAxiosError } from "axios";
 // import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
 import { PhoneInput } from "../../reusuableComponents/inputFields/PhoneInput";
+import Check from "../../../assets/icon/check.svg"
+
 export default function RegisterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
@@ -192,7 +194,7 @@ export default function RegisterScreen({ navigation }) {
                       }
                     >
                       {values.acceptedPersonalData && (
-                        <MaterialIcons name="check" size={16} color="#EB278D" />
+                        <Check width={13} height={28} stroke="#eb278d"/>
                       )}
                     </Pressable>
                     <View className="flex-1">

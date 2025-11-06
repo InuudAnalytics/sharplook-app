@@ -12,7 +12,9 @@ import MarketStack from "./Market/MarketStack";
 import BookingStack from "./Booking/BookingStack";
 import NotificationStack from "./Notification/NotificationStack";
 import ProfileStack from "./Profile/ProfileStack";
-
+import Home from "../../../assets/icon/home.svg"
+import Bag from "../../../assets/icon/bag.svg"
+import Calendar from "../../../assets/icon/calendar2.svg"
 const Tab = createBottomTabNavigator();
 
 export default function ClientBottomNav() {
@@ -23,12 +25,12 @@ export default function ClientBottomNav() {
         tabBarIcon: ({ color, size }) => {
           if (route.name === "Home") {
             return (
-              <FontAwesome5 name="fire" size={24} color={color} />  // CHANGED
+              <Home name="fire" size={24} color={color} /> 
             );
           } else if (route.name === "Market") {
-            return <FontAwesome5 name="store" size={size} color={color} />;  // CHANGED
+            return <Bag name="store" size={size} color={color} />;  // CHANGED
           } else if (route.name === "Bookings") {
-            return <MaterialIcons name="event" size={size} color={color} />;
+            return <Calendar name="event" size={size} color={color} />;
           } else if (route.name === "Notification") {
             return (
               <Ionicons

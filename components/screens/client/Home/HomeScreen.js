@@ -39,6 +39,14 @@ import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { useCategories } from "../../../../hooks/useCategories";
 import { useFilter } from "../../../../context/FilterContext";
 import { getCurrentLocation } from "../../../../utils/locationUtils";
+import Chat from "../../../../assets/icon/chat.svg"
+import Cart from "../../../../assets/icon/cart.svg"
+import Search from "../../../../assets/icon/search.svg"
+import Close from "../../../../assets/icon/x.svg"
+import Star from "../../../../assets/icon/star.svg"
+import More from "../../../../assets/icon/more.svg"
+// C:\Users\YungFlash\Desktop\projects\sharpOrg\sharp-main\sharplook-app\assets\icon\chat.svg
+
 
 const recommendedProducts = [
   { image: ProductOne },
@@ -317,7 +325,9 @@ export default function HomeScreen() {
                 // Reset unread count when navigating to chat
                 setUnreadCount(0);
               }}>
-              <Entypo name="chat" size={24} color="#EB278f" />
+              {/* <Entypo name="chat" size={24} color="#EB278f" /> */}
+                          <Chat width={40} height={45} />
+
               {unreadCount > 0 && (
                 <View
                   className="absolute -top-2 -right-2 min-w-[20px] h-5 rounded-full bg-red-600 items-center justify-center px-1.5"
@@ -340,7 +350,9 @@ export default function HomeScreen() {
             <TouchableOpacity
               className="relative"
               onPress={() => navigation.navigate("CartScreen")}>
-              <Feather name="shopping-cart" size={24} color="#EB278D" />
+              {/* <Feather name="shopping-cart" size={24} color="#EB278D" /> */}
+                          <Cart width={28} height={20} stroke="#eb278d"/>
+
               {cartItems.length > 0 && (
                 <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center">
                   <Text className="text-[10px] text-white font-medium">
@@ -361,13 +373,17 @@ export default function HomeScreen() {
           <View className="flex-row items-center flex-1 bg-secondary border border-[#F9BCDC] rounded-xl px-4 mr-3">
             <Pressable onPress={() => toggleSearchBar()}>
               {isSearchBarActive ? (
-                <MaterialCommunityIcons
-                  name="close"
-                  size={24}
-                  color="#8c817a"
-                />
+                // <MaterialCommunityIcons
+                //   name="close"
+                //   size={24}
+                //   color="#8c817a"
+                // />
+                <Close width={28} height={28} stroke="#eb278d"/>
+
               ) : (
-                <MaterialIcons name="search" size={24} color="#8c817a" />
+                // <MaterialIcons name="search" size={24} color="#8c817a" />
+                            <Search width={28} height={18} stroke="#eb278d"/>
+
               )}
             </Pressable>
             <TextInput
@@ -542,7 +558,7 @@ export default function HomeScreen() {
                             });
                           }}>
                           <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
-                            <MaterialCommunityIcons
+                            <Star
                               name="shimmer"
                               size={24}
                               color="#EB278D"
@@ -564,7 +580,7 @@ export default function HomeScreen() {
                           });
                         }}>
                         <View className="rounded-full h-[54px] w-[54px] items-center justify-center mb-1 border border-primary">
-                          <Ionicons
+                          <More
                             name="ellipsis-horizontal"
                             size={24}
                             color="#EB278D"

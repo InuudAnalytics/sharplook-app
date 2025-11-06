@@ -145,7 +145,7 @@ export default function OnboardingScreen() {
           <OutlineButton
   title="Register as a Client"
   onPress={() => handleUserTypeSelection("client")}
-  icon={<RightIcon width={28} height={28} />}
+  icon={<User width={28} height={28} />}
   iconPosition="left"
 />
 

@@ -16,7 +16,7 @@ import { useAuth } from "../../../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import LoaderOverlay from "../../reusuableComponents/LoaderOverlay";
 import { useNotifications } from "../../../hooks/useNotifications";
-
+import Check from "../../../assets/icon/check.svg"
 export default function LoginScreen({ navigation }) {
   const [rememberMe, setRememberMe] = useState(false);
   const { setLastAttemptedCredentials, login } = useAuth();
@@ -144,7 +144,9 @@ export default function LoginScreen({ navigation }) {
                     onPress={() => setRememberMe(!rememberMe)}
                   >
                     {rememberMe && (
-                      <MaterialIcons name="check" size={16} color="#EB278D" />
+                      // <MaterialIcons name="check" size={16} color="#EB278D" />
+                                  <Check width={20} height={28} stroke="#eb278d"/>
+
                     )}
                   </Pressable>
                   <Text
