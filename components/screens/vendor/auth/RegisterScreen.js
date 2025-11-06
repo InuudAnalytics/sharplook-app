@@ -273,7 +273,7 @@ export default function VendorRegisterScreen({ navigation }) {
                     >
                       Upload any means of Identity
                     </Text>
-                    <MaterialIcons name="add" size={16} color="#201E1F" />
+                    
                   </Pressable>
                 )}
 

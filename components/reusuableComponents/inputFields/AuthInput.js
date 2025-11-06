@@ -8,6 +8,8 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Eye from '../../../assets/icon/eye.svg'
+import Eyeoff from '../../../assets/icon/eye-off.svg'
 
 export const AuthInput = ({
   label,
@@ -93,11 +95,12 @@ export const AuthInput = ({
             accessibilityRole="button"
             testID="toggle-password-visibility"
           >
-            <Ionicons
+            {/* <Ionicons
               name={isPasswordVisible ? "eye-off" : "eye"}
-              size={20}
+              size={50}
               color="#EB278D4D"
-            />
+            /> */}
+            {isPasswordVisible ? <Eye stroke='#eb278d'/> : <Eyeoff stroke='#eb278d'/>}
           </TouchableOpacity>
         )}
       </View>
