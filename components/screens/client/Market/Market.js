@@ -19,6 +19,10 @@ import { useCart } from "../../../../context/CartContext";
 import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { ChatConnectionLoader } from "../../../reusuableComponents/ChatConnectionLoader";
 import { EmptyData } from "../../../reusuableComponents/EmptyData";
+import Search from "../../../../assets/icon/search.svg";
+import Star from "../../../../assets/icon/star.svg";
+import Chat from "../../../../assets/icon/chat.svg";
+import Cart from "../../../../assets/icon/cart.svg";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
@@ -277,20 +281,20 @@ export default function Market() {
 
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <Ionicons key={"full_" + i} name="star" size={14} color="#FFC107" />
+        <Star  height={10} width={10} color="#FFC107" />
       );
     }
     if (halfStar) {
       stars.push(
-        <Ionicons key="half" name="star-half" size={14} color="#FFC107" />
+        <Star key="half" name="star-half" size={10} color="#FFC107" />
       );
     }
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <Ionicons
+        <Star
           key={"empty_" + i}
           name="star-outline"
-          size={14}
+          size={10}
           color="#FFC107"
         />
       );
@@ -335,7 +339,7 @@ export default function Market() {
                 Vendor: {item?.vendor?.vendorOnboarding?.businessName}
               </Text>
               <TouchableOpacity onPress={() => handleChatVendor(item)}>
-                <MaterialIcons name="chat" size={20} color="#EB278D" />
+                <Chat name="chat" size={20} color="#EB278D" />
               </TouchableOpacity>
             </View>
             <Text
@@ -389,7 +393,7 @@ export default function Market() {
           onPress={() => navigation.navigate("CartScreen")}
           className="relative"
         >
-          <Ionicons name="cart-outline" size={26} color="#EB278D" />
+          <Cart name="cart-outline" size={26} color="#EB278D" />
           {cartItems.length > 0 && (
             <View
               style={{
@@ -417,7 +421,7 @@ export default function Market() {
 
       <View className="flex-row items-center px-4 mt-2 mb-2">
         <View className="flex-row items-center flex-1 bg-secondary border border-[#F9BCDC] rounded-xl px-4 mr-3">
-          <MaterialIcons name="search" size={22} color="#8c817a" />
+          <Search name="search" size={22} color="#8c817a" />
           <TextInput
             className="ml-2 text-sm pt-5 pb-4 placeholder:text-faintDark2"
             placeholder="Search Market"

@@ -37,6 +37,14 @@ import WalletStack from "./WalletStack";
 import ClientOfferStack from "./MyOffers/ClientOfferStack";
 import MyOrderStack from "./MyOrder/MyOrderStack";
 import EditProfileScreen from "./Profile/EditProfileScreen";
+import User from "../../../assets/icon/user.svg"
+import Calendar from "../../../assets/icon/calendar.svg"
+import Clip from "../../../assets/icon/clip.svg"
+import Package from "../../../assets/icon/package.svg"
+import Gift from "../../../assets/icon/gift.svg"
+import Settings from "../../../assets/icon/settings.svg"
+import Card from "../../../assets/icon/card.svg"
+
 // import AllVendorsScreen from "./Home/AllVendorScreen";
 
 const Drawer = createDrawerNavigator();
@@ -68,7 +76,7 @@ export default function ClientNavigator() {
           component={ProfileStack}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
+              <User name="person-outline" size={size} color={color} />
             ),
           }}
         />
@@ -85,7 +93,7 @@ export default function ClientNavigator() {
           component={BookingStack}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
+              <Calendar name="calendar-outline" size={size} color={color} />
             ),
           }}
         />
@@ -94,7 +102,7 @@ export default function ClientNavigator() {
           component={ClientOfferStack}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="pricetag-outline" size={size} color={color} />
+              <Clip name="pricetag-outline" size={size} color={color} />
             ),
           }}
         />
@@ -103,7 +111,7 @@ export default function ClientNavigator() {
           component={MyOrderStack}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="receipt-outline" size={size} color={color} />
+              <Package name="receipt-outline" size={size} color={color} />
             ),
           }}
         />
@@ -113,7 +121,7 @@ export default function ClientNavigator() {
           component={WalletStack}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="wallet-outline" size={size} color={color} />
+              <Card name="wallet-outline" size={size} color={color} />
             ),
           }}
         />
@@ -122,7 +130,7 @@ export default function ClientNavigator() {
           component={ReferAndEarnScreen}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="gift-outline" size={size} color={color} />
+              <Gift name="gift-outline" size={size} color={color} />
             ),
           }}
         />
@@ -132,7 +140,7 @@ export default function ClientNavigator() {
           component={SettingsScreen}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="settings-outline" size={size} color={color} />
+              <Settings name="settings-outline" size={size} color={color} />
             ),
           }}
         />

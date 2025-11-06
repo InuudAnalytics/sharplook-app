@@ -429,6 +429,7 @@ import { formatAmount } from "../../../formatAmount";
 import { showToast } from "../../../ToastComponent/Toast";
 import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { ChatConnectionLoader } from "../../../reusuableComponents/ChatConnectionLoader";
+import Chat from "../"
 
 export default function BookingDetailScreen() {
   const route = useRoute();
@@ -665,7 +666,7 @@ export default function BookingDetailScreen() {
               {isConnecting ? (
                 <ActivityIndicator size="small" color="#EB278D" />
               ) : (
-                <MaterialIcons name="chat" size={20} color="#EB278D" />
+                <Chat name="chat" size={20} color="#EB278D" />
               )}
             </TouchableOpacity>
           </View>

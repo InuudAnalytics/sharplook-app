@@ -15,6 +15,9 @@ import ProfileStack from "./Profile/ProfileStack";
 import Home from "../../../assets/icon/home.svg"
 import Bag from "../../../assets/icon/bag.svg"
 import Calendar from "../../../assets/icon/calendar2.svg"
+import Bell from "../../../assets/icon/bell.svg"
+import User from "../../../assets/icon/user.svg"
+
 const Tab = createBottomTabNavigator();
 
 export default function ClientBottomNav() {
@@ -33,14 +36,14 @@ export default function ClientBottomNav() {
             return <Calendar name="event" size={size} color={color} />;
           } else if (route.name === "Notification") {
             return (
-              <Ionicons
+              <Bell
                 name="notifications-outline"
                 size={size}
                 color={color}
               />
             );
           } else if (route.name === "Profile") {
-            return <AntDesign name="user" size={24} color={color} />;
+            return <User name="user" size={24} color={color} />;
           }
         },
         tabBarActiveTintColor: "#EB278D",
