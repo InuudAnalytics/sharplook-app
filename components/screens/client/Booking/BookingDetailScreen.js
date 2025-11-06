@@ -429,7 +429,7 @@ import { formatAmount } from "../../../formatAmount";
 import { showToast } from "../../../ToastComponent/Toast";
 import { useChatNavigation } from "../../../../hooks/useChatNavigation";
 import { ChatConnectionLoader } from "../../../reusuableComponents/ChatConnectionLoader";
-import Chat from "../"
+import Chat from "../../../../assets/icon/chat.svg"
 
 export default function BookingDetailScreen() {
   const route = useRoute();
