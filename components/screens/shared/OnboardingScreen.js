@@ -18,6 +18,10 @@ import BottomModal from "../../reusuableComponents/BottomModal";
 import OutlineButton from "../../reusuableComponents/buttons/OutlineButton";
 import { AntDesign } from "@expo/vector-icons";
 import { useAuth } from "../../../context/AuthContext";
+import RightIcon from "../../../assets/icon/chevrons-right.svg"
+import Check from "../../../assets/icon/check.svg"
+import User from "../../../assets/icon/user.svg"
+
 
 const steps = [
   {
@@ -120,13 +124,13 @@ export default function OnboardingScreen() {
             </Animated.View>
             <View style={styles.innerButton}>
               {step === steps.length - 1 ? (
-                <MaterialIcons name="check" size={28} color="white" />
+                <Check width={28} height={28} stroke="#fff" />
+
               ) : (
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={28}
-                  color="white"
-                />
+                <RightIcon width={28} height={28} stroke="#fff" />
+
+                
+
               )}
             </View>
           </View>
@@ -139,11 +143,12 @@ export default function OnboardingScreen() {
       >
         <View className="pt-10">
           <OutlineButton
-            title="Register as a Client"
-            onPress={() => handleUserTypeSelection("client")}
-            icon={<AntDesign name="user" size={20} color="#EB278D" />}
-            iconPosition="left"
-          />
+  title="Register as a Client"
+  onPress={() => handleUserTypeSelection("client")}
+  icon={<RightIcon width={28} height={28} />}
+  iconPosition="left"
+/>
+
           <OutlineButton
             title="Register as a Vendor"
             onPress={() => handleUserTypeSelection("vendor")}

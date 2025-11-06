@@ -30,13 +30,13 @@ import {
 import { useAuth } from "../../../../context/AuthContext";
 import { io } from "socket.io-client";
 import { HttpClient } from "../../../../api/HttpClient";
-import {
-  RTCPeerConnection,
-  RTCView,
-  mediaDevices,
-  RTCIceCandidate,
-  RTCSessionDescription,
-} from "react-native-webrtc";
+// import {
+//   RTCPeerConnection,
+//   RTCView,
+//   mediaDevices,
+//   RTCIceCandidate,
+//   RTCSessionDescription,
+// } from "react-native-webrtc";
 
 export default function ChatDetailScreen() {
   const route = useRoute();
