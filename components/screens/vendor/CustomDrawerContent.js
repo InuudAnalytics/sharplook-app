@@ -5,6 +5,9 @@ import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import CloseNavBtn from "../../../assets/icon/opennav.svg";
 import { useAuth } from "../../../context/AuthContext";
 
+import Menu from '../../../assets/icon/menu.svg'
+import Ques from '../../../assets/icon/help-circle.svg'
+
 export default function CustomDrawerContent(props) {
   const { user, logout } = useAuth();
   const handleLogout = async () => {
@@ -20,7 +23,7 @@ export default function CustomDrawerContent(props) {
         {/* Menu Icon */}
         <View className="justify-start flex-row">
           <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
-            <CloseNavBtn width={40} height={40} />
+            <Menu width={30} height={25} stroke='#eb278d'/>
           </TouchableOpacity>
         </View>
         {/* Vendor Info */}
@@ -51,7 +54,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("StoreManagement")}
         >
-          <Ionicons name="storefront" size={22} color="#ED2584" />
+          <Ques name="storefront" size={42} color="#ED2584" />
           <Text
             className="ml-4 text-[16px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
