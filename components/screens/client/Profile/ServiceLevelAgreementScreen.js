@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Back from "../../../../assets/icon/back.svg"
+import Help from "../../../../assets/icon/help-circle.svg"
+import Mail from "../../../../assets/icon/mail.svg"
+
 
 export default function ServiceLevelAgreementScreen() {
   const navigation = useNavigation();
@@ -19,7 +23,7 @@ export default function ServiceLevelAgreementScreen() {
       {/* Header */}
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Back name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}
@@ -47,7 +51,7 @@ export default function ServiceLevelAgreementScreen() {
           </Text>
           <View className="flex-row items-center">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <MaterialIcons name="handshake" size={20} color="#EB278D" />
+              <Help name="handshake" size={20} color="#EB278D" />
             </View>
             <Text
               className="text-[14px] text-gray-700 flex-1"
@@ -440,7 +444,7 @@ export default function ServiceLevelAgreementScreen() {
         <View className="rounded-2xl p-6 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-3">
             <View className="bg-primary p-2 rounded-[20px] mr-3">
-              <Ionicons name="mail" size={20} color="#fff" />
+              <Mail name="mail" size={20} color="#fff" />
             </View>
             <Text
               className="text-[16px] text-gray-800"

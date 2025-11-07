@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import File from "../../../../assets/icon/file.svg"
 import Back from "../../../../assets/icon/back.svg"
+import Email from "../../../../assets/icon/mail.svg"
 
 export default function TermsOfUseScreen() {
   const navigation = useNavigation();
@@ -49,7 +50,7 @@ export default function TermsOfUseScreen() {
           </Text>
           <View className="flex-row items-center">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <Ionicons name="document-text" size={20} color="#EB278D" />
+              <File name="document-text" size={20} color="#EB278D" />
             </View>
             <Text
               className="text-[14px] text-gray-700 flex-1"
@@ -463,7 +464,7 @@ export default function TermsOfUseScreen() {
         <View className="rounded-2xl p-6 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-3">
             <View className="bg-primary p-2 rounded-[20px] mr-3">
-              <Ionicons name="mail" size={20} color="#fff" />
+              <Email name="mail" size={20} color="#fff" />
             </View>
             <Text
               className="text-[16px] text-gray-800"
