@@ -7,6 +7,13 @@ import { useAuth } from "../../../context/AuthContext";
 
 import Menu from '../../../assets/icon/menu.svg'
 import Ques from '../../../assets/icon/help-circle.svg'
+import Offer from '../../../assets/icon/clip.svg'
+import Active from '../../../assets/icon/activity.svg'
+import Order from '../../../assets/icon/package.svg'
+import Gift from '../../../assets/icon/gift.svg'
+import Card from '../../../assets/icon/credit-card.svg'
+import Out from '../../../assets/icon/log-out.svg'
+import Bell from '../../../assets/icon/bell.svg'
 
 export default function CustomDrawerContent(props) {
   const { user, logout } = useAuth();
@@ -48,13 +55,13 @@ export default function CustomDrawerContent(props) {
           </View>
         </View>
       </View>
-      <View style={{ flex: 1, marginTop: 30 }}>
+      <View style={{ flex: 1, marginTop: 30, }}>
         {/* Store Setup and Management */}
         <TouchableOpacity
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("StoreManagement")}
         >
-          <Ques name="storefront" size={42} color="#ED2584" />
+          <Ques name="storefront" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[16px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -67,7 +74,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("Analytics & Insights")}
         >
-          <Ionicons name="analytics-outline" size={22} color="#ED2584" />
+          <Active name="analytics-outline" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[17px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -80,7 +87,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("VendorOffers")}
         >
-          <Ionicons name="pricetag-outline" size={22} color="#ED2584" />
+          <Offer name="pricetag-outline" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[17px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -92,7 +99,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("OrdersStack")}
         >
-          <Ionicons name="receipt-outline" size={22} color="#ED2584" />
+          <Order name="receipt-outline" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[17px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -105,7 +112,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("Refer and Earn")}
         >
-          <Ionicons name="gift-outline" size={22} color="#ED2584" />
+          <Gift name="gift-outline" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[17px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -118,7 +125,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("Subscription")}
         >
-          <Ionicons name="card-outline" size={22} color="#ED2584" />
+          <Card name="card-outline" height={20}size={22} color="#ED2584" />
           <Text
             className="ml-4 text-[17px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -131,7 +138,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={() => props.navigation.navigate("Notification")}
         >
-          <Ionicons name="notifications-outline" size={22} color="#ED2584" />
+          <Bell name="notifications-outline" height={20} color="#ED2584" />
           <Text
             className="ml-4 text-[16px] text-faintDark"
             style={{ fontFamily: "poppinsRegular" }}
@@ -157,7 +164,7 @@ export default function CustomDrawerContent(props) {
           className="flex-row items-center px-6 py-4"
           onPress={handleLogout}
         >
-          <MaterialIcons name="logout" size={22} color="#FF0000" />
+          <Out name="logout" height={20} color="#FF0000" />
           <Text
             className="ml-4 text-[14px] text-[#FF0000]"
             style={{ fontFamily: "poppinsRegular" }}

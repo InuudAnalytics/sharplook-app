@@ -141,7 +141,6 @@ export default function MyServicesScreen({ navigation }) {
       </View>
       <View className="px-6">
         <AuthButton
-          iconRight={<Feather name="plus" size={16} color="#fff" />}
           title="Add New Service"
           onPress={() => navigation.navigate("AddServices")}
         />

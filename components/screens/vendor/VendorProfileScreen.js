@@ -14,6 +14,11 @@ import { useAuth } from "../../../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
 import TawkToChat from "../../TawkToChat";
 
+import Map from '../../../assets/icon/map-pin.svg'
+import Left from '../../../assets/icon/left.svg'
+import Help from '../../../assets/icon/help-circle.svg'
+import Settings from '../../../assets/icon/settings.svg'
+
 const VendorProfileScreen = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
@@ -59,7 +64,7 @@ const VendorProfileScreen = () => {
           className="absolute top-[40px] left-4 z-10 p-2"
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
+          <Left name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         <View className="items-center pt-10">
           <View>
@@ -92,7 +97,7 @@ const VendorProfileScreen = () => {
             </View>
           </View>
           <View className="flex-row justify-center w-[70%] mt-2">
-            <Ionicons name="location-sharp" size={14} color="#fff" />
+            <Map name="location-sharp" width={10} height={20} color="#fff" />
             <Text
               className="text-white text-center text-[14px] ml-1"
               style={{ fontFamily: "poppinsLight" }}
@@ -110,7 +115,7 @@ const VendorProfileScreen = () => {
           onPress={() => navigation.navigate("StoreManagement")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <Ionicons name="storefront" size={24} color="#fff" />
+            <Settings name="storefront" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"
@@ -142,7 +147,7 @@ const VendorProfileScreen = () => {
           className="flex-row items-center mb-1 bg-white rounded-xl px-4 py-4 shadow-sm"
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <Ionicons name="help-circle" size={24} color="#fff" />
+            <Help name="help-circle" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"

@@ -138,7 +138,7 @@ export default function MyProductsScreen({ navigation }) {
       </View>
       <View className="px-6">
         <AuthButton
-          iconRight={<Feather name="plus" size={16} color="#fff" />}
+          
           title="Add New Product"
           onPress={() => navigation.navigate("AddProduct")}
         />
