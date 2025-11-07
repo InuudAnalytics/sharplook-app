@@ -21,6 +21,8 @@ import Award from "../../../../assets/icon/award.svg"
 import Logout from "../../../../assets/icon/log-out.svg"
 import Trash from "../../../../assets/icon/trash.svg"
 import Back from "../../../../assets/icon/back.svg"
+import Right from "../../../../assets/icon/right.svg"
+// import Right 
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -191,7 +193,7 @@ const handleDeleteAccount = async () => {
           >
             My Account
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         {/* Settings */}
         {/* <TouchableOpacity
@@ -223,7 +225,7 @@ const handleDeleteAccount = async () => {
           >
             Help and Support
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         {/* Legal */}
         <TouchableOpacity
@@ -239,7 +241,7 @@ const handleDeleteAccount = async () => {
           >
             Legal
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
 
         <TouchableOpacity

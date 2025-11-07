@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Back from "../../../../assets/icon/back.svg"
+import Lock from "../../../../assets/icon/lock.svg"
+import Users from "../../../../assets/icon/users.svg"
+import Mail from "../../../../assets/icon/mail.svg"
 
 export default function DataProtectionAgreementScreen() {
   const navigation = useNavigation();
@@ -19,7 +23,7 @@ export default function DataProtectionAgreementScreen() {
       {/* Header */}
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Back name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}
@@ -47,7 +51,7 @@ export default function DataProtectionAgreementScreen() {
           </Text>
           <View className="flex-row items-center">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <Ionicons name="lock-closed" size={20} color="#EB278D" />
+              <Lock name="lock-closed" size={20} color="#EB278D" />
             </View>
             <Text
               className="text-[14px] text-gray-700 flex-1"
@@ -62,7 +66,7 @@ export default function DataProtectionAgreementScreen() {
         <View className="rounded-2xl p-4 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-2">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <Ionicons name="people" size={18} color="#EB278D" />
+              <Users name="people" size={18} color="#EB278D" />
             </View>
             <Text
               className="text-[16px] text-gray-800"
@@ -539,7 +543,7 @@ export default function DataProtectionAgreementScreen() {
         <View className="rounded-2xl p-6 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-3">
             <View className="bg-primary p-2 rounded-[20px] mr-3">
-              <Ionicons name="mail" size={20} color="#fff" />
+              <Mail name="mail" size={20} color="#fff" />
             </View>
             <Text
               className="text-[16px] text-gray-800"
