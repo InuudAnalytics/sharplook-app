@@ -16,6 +16,8 @@ import { formatAmount } from "../../formatAmount";
 import { HexConverter } from "../../reusuableComponents/HexConverter";
 import { DateConverter } from "../../reusuableComponents/DateConverter";
 
+import Map from '../../../assets/icon/map-pin.svg'
+
 // Skeleton Loader Component
 function SkeletonLoader() {
   return (
@@ -160,7 +162,7 @@ export default function VendorBookingsScreen() {
               className="text-white text-[14px] opacity-80"
               style={{ fontFamily: "poppinsRegular" }}
             >
-              <Ionicons name="location-sharp" size={12} color="white" />
+              <Map name="location-sharp" width={10} height={10} color="white" />
               {"  "}
               {user?.vendorOnboarding?.location}
             </Text>
