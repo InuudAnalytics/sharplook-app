@@ -18,6 +18,9 @@ import Map from '../../../assets/icon/map-pin.svg'
 import Left from '../../../assets/icon/left.svg'
 import Help from '../../../assets/icon/help-circle.svg'
 import Settings from '../../../assets/icon/settings.svg'
+import Right from '../../../assets/icon/right.svg'
+import Medal from '../../../assets/icon/award.svg'
+import Out from '../../../assets/icon/log-out.svg'
 
 const VendorProfileScreen = () => {
   const navigation = useNavigation();
@@ -123,7 +126,7 @@ const VendorProfileScreen = () => {
           >
             Store Setup and Management
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         {/* Settings */}
         {/* <TouchableOpacity
@@ -139,7 +142,7 @@ const VendorProfileScreen = () => {
           >
             Settings
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity> */}
         {/* Help and Support */}
         <TouchableOpacity
@@ -155,7 +158,7 @@ const VendorProfileScreen = () => {
           >
             Help and Support
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         {/* Legal */}
         <TouchableOpacity
@@ -163,7 +166,7 @@ const VendorProfileScreen = () => {
           onPress={() => navigation.navigate("VendorLegalScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <MaterialIcons name="gavel" size={24} color="#fff" />
+            <Medal name="gavel" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"
@@ -171,7 +174,7 @@ const VendorProfileScreen = () => {
           >
             Legal
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
 
         {/* Logout */}
@@ -180,7 +183,7 @@ const VendorProfileScreen = () => {
           onPress={handleLogout}
         >
           <View className="bg-[#FF0000] p-2 rounded-full mr-4">
-            <Ionicons name="log-out-outline" size={24} color="#fff" />
+            <Out name="log-out-outline" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-[#FF0000]"

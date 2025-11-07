@@ -223,7 +223,7 @@ export default function HelpSupportScreen() {
         </View>
       </ScrollView>
 
-      <View className="absolute bottom-[85px] right-4">
+      {/* <View className="absolute bottom-[85px] right-4">
         <View className="items-center">
           <TouchableOpacity
             onPress={handleChatOpen}
@@ -238,7 +238,7 @@ export default function HelpSupportScreen() {
             Live Chat
           </Text>
         </View>
-      </View>
+      </View> */}
       <Modal
         visible={chatVisible}
         animationType="slide"

@@ -26,6 +26,10 @@ import Dropdown from "../../reusuableComponents/inputFields/Dropdown";
 import * as ImagePicker from "expo-image-picker";
 import { OutlinePhoneInput } from "../../reusuableComponents/inputFields/OutlinePhoneInput";
 
+import Left from '../../../assets/icon/left.svg'
+import Edit from '../../../assets/icon/edit.svg'
+import Map from '../../../assets/icon/map-pin.svg'
+
 // Time picker component
 const TimePicker = ({ value, onValueChange, label, error, touched }) => {
   const [showPicker, setShowPicker] = useState(false);
@@ -410,7 +414,7 @@ const StoreManagementScreen = () => {
             onPress={() => navigation.goBack()}
             className="absolute left-4 top-10"
           >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
+            <Left name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
           <View>
             <Image
@@ -425,7 +429,7 @@ const StoreManagementScreen = () => {
               {isUploadingImage ? (
                 <View className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
               ) : (
-                <Feather name="edit" size={18} color="#000" />
+                <Edit name="edit" size={18} color="#000" />
               )}
             </TouchableOpacity>
           </View>
@@ -449,7 +453,7 @@ const StoreManagementScreen = () => {
             </View>
           </View>
           <View className="flex-row mt-2  w-[70%] justify-center">
-            <Ionicons name="location-sharp" size={14} color="#fff" />
+            <Map name="location-sharp" width={10} height={20} color="#fff" />
             <Text
               className="text-white text-center text-[14px] ml-1"
               style={{ fontFamily: "poppinsLight" }}
