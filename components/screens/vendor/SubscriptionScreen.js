@@ -24,6 +24,10 @@ import {
   formatDateToDDMMYYYY,
 } from "../../reusuableComponents/DateConverter";
 
+import Checkg from '../../../assets/icon/check-circle.svg'
+import Checkx from '../../../assets/icon/x-circle.svg'
+import Left from '../../../assets/icon/left.svg'
+
 export default function SubscriptionScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -177,7 +181,7 @@ export default function SubscriptionScreen({ navigation }) {
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
       <View className="pt-[60px] pb-4 px-4 bg-[#FFFAFD] flex-row items-center justify-between shadow-sm">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#222" />
+          <Left name="chevron-back" size={28} color="#222" />
         </TouchableOpacity>
         <Text
           className="flex-1 text-center text-[16px]"
@@ -195,9 +199,9 @@ export default function SubscriptionScreen({ navigation }) {
           <View className="flex-row px-4 py-4 items-center mb-3 border-b border-[#EBEBEA]">
             <View className="w-4 h-4 bg-red-500 rounded-full items-center justify-center mr-2">
               {subscription?.subscription ? (
-                <AntDesign name="checkcircleo" size={12} color="#EB278D" />
+                <Checkg name="checkcircleo" width={15} height={20} color="#EB278D" />
               ) : (
-                <AntDesign name="closecircleo" size={12} color="red" />
+                <Checkx name="closecircleo" width={15} height={20} color="red" />
               )}
             </View>
             {subscription?.subscription ? (

@@ -15,6 +15,8 @@ import { HttpClient } from "../../../api/HttpClient";
 import { useAuth } from "../../../context/AuthContext";
 import { EmptyData } from "../../reusuableComponents/EmptyData";
 
+import Left from '../../../assets/icon/left.svg'
+
 // Skeleton Loader Component
 const SkeletonCard = () => (
   <View
@@ -154,7 +156,7 @@ export default function VendorOffersScreen() {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#1F2937" />
+          <Left name="chevron-back" size={24} color="#1F2937" />
         </TouchableOpacity>
 
         <Text

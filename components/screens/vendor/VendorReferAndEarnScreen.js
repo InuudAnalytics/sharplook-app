@@ -20,6 +20,11 @@ import { EmptyData } from "../../reusuableComponents/EmptyData";
 import { formatAmount } from "../../formatAmount";
 import { formatDateTime } from "../../reusuableComponents/DateConverter";
 
+import Copy from '../../../assets/icon/copy.svg'
+import Card from '../../../assets/icon/card.svg'
+import Vendor from '../../../assets/icon/users.svg'
+import Left from '../../../assets/icon/left.svg'
+
 export default function VendorReferAndEarnScreen() {
   const navigation = useNavigation();
   const [inputCode, setInputCode] = useState("");
@@ -60,7 +65,7 @@ export default function VendorReferAndEarnScreen() {
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Left name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}
@@ -107,7 +112,7 @@ export default function VendorReferAndEarnScreen() {
           <View style={styles.codeRow} className="border border-[#EBEBEA]">
             <Text style={styles.code}>{user?.referralCode}</Text>
             <TouchableOpacity onPress={handleCopy} style={styles.copyIcon}>
-              <Feather
+              <Copy
                 name={copied ? "check" : "copy"}
                 size={20}
                 color="#EB278D"
@@ -115,7 +120,7 @@ export default function VendorReferAndEarnScreen() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.copyBtn} onPress={handleCopy}>
-            <MaterialIcons name="content-copy" size={12} color="#fff" />
+            <Copy name="content-copy" width={20} height={20} color="#fff" />
             <Text style={styles.copyBtnText}>Copy Code</Text>
           </TouchableOpacity>
         </View>
@@ -135,14 +140,14 @@ export default function VendorReferAndEarnScreen() {
           </Text>
 
           <View style={styles.summaryRow}>
-            <Ionicons name="wallet-outline" size={20} color="#EB278D" />
+            <Card name="wallet-outline" width={20} height={20} color="#EB278D" />
             <Text style={styles.summaryLabel}>Money made</Text>
             <Text style={styles.summaryValue}>
               {formatAmount(analytics?.totalEarned)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Ionicons name="people-outline" size={20} color="#EB278D" />
+            <Vendor name="people-outline" width={20} height={20} color="#EB278D" />
             <Text style={styles.summaryLabel}>Vendors Who Joined</Text>
             <Text style={styles.summaryValue}>
               {formatAmount(analytics?.totalReferrals)}

@@ -20,6 +20,8 @@ import { DayConverter } from "../../../reusuableComponents/DayConverter";
 import { formatAmount } from "../../../formatAmount";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
+import Left from '../../../../assets/icon/left.svg'
+
 export default function MyOrderScreen() {
   const navigation = useNavigation();
   const [tab, setTab] = useState("");
@@ -156,7 +158,7 @@ export default function MyOrderScreen() {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Left name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={{ fontFamily: "poppinsMedium" }} className="text-[18px]">
           Orders

@@ -14,6 +14,7 @@ import { HttpClient } from "../../../api/HttpClient";
 import EmptySVG from "../../../assets/img/empty.svg";
 import { DateConverter } from "../../reusuableComponents/DateConverter";
 import { getRelativeTime } from "../../reusuableComponents/RelativeTime";
+import Left from '../../../assets/icon/left.svg'
 
 export default function NotificationList() {
   const navigation = useNavigation();
@@ -151,7 +152,7 @@ export default function NotificationList() {
           }}
         >
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#fff" />
+            <Left name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text
             style={{

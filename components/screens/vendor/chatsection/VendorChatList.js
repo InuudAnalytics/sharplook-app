@@ -17,6 +17,9 @@ import { EmptyData } from "../../../reusuableComponents/EmptyData";
 import { ChatTimestamp } from "../../../reusuableComponents/ChatTimestamp";
 import { useVendorChatNavigation } from "../../../../hooks/useVendorChatNavigation";
 
+import Left from '../../../../assets/icon/left.svg'
+import Search from '../../../../assets/icon/search.svg'
+
 export default function VendorChatListScreen() {
   const navigation = useNavigation();
   const { user, isLoading: authLoading } = useAuth();
@@ -216,7 +219,7 @@ export default function VendorChatListScreen() {
           className="pr-4"
           style={{ minWidth: 40, alignItems: "flex-start" }}
         >
-          <MaterialIcons name="chevron-left" size={32} color="#fff" />
+          <Left name="chevron-left" size={32} color="#fff" />
         </TouchableOpacity>
         {/* Title */}
         <View style={{ flex: 1, alignItems: "center" }}>
@@ -232,7 +235,7 @@ export default function VendorChatListScreen() {
       </View>
       <View className="px-4 mt-4">
         <View className="flex-row items-center bg-white border border-[#F9BCDC] rounded-xl px-4 pt-3 pb-2">
-          <MaterialIcons name="search" size={24} color="#8c817a" />
+          <Search name="search" size={24} color="#8c817a" />
           <TextInput
             className="ml-2 text-sm flex-1"
             placeholder="Search messages"

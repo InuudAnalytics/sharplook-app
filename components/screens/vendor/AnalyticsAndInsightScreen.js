@@ -18,6 +18,9 @@ import { EmptyData } from "../../reusuableComponents/EmptyData";
 import { formatAmount } from "../../formatAmount";
 import { HexConverter } from "../../reusuableComponents/HexConverter";
 import { getRelativeTime } from "../../reusuableComponents/RelativeTime";
+
+import Down from '../../../assets/icon/down.svg'
+import Left from '../../../assets/icon/left.svg'
 const months = [
   "January",
   "February",
@@ -282,7 +285,7 @@ export default function AnalyticsAndInsightScreen({ navigation }) {
       {/* Header */}
       <View className="pt-[60px] pb-3 px-4 bg-white shadow-sm flex-row items-center">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Left name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text
           className="flex-1 text-center text-[16px]"
@@ -312,7 +315,7 @@ export default function AnalyticsAndInsightScreen({ navigation }) {
               >
                 {months[selectedMonth - 1]} {selectedYear}
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#fff" />
+              <Down name="chevron-down" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
           <Modal
