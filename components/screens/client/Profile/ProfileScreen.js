@@ -15,6 +15,12 @@ import React, { useState } from "react";
 import { HttpClient } from "../../../../api/HttpClient";
 import { BlurView } from "expo-blur";
 import { showToast } from "../../../ToastComponent/Toast";
+import User from "../../../../assets/icon/user.svg"
+import Help from "../../../../assets/icon/help-circle.svg"
+import Award from "../../../../assets/icon/award.svg"
+import Logout from "../../../../assets/icon/log-out.svg"
+import Trash from "../../../../assets/icon/trash.svg"
+import Back from "../../../../assets/icon/back.svg"
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -144,7 +150,7 @@ const handleDeleteAccount = async () => {
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
       <View className="bg-primary rounded-b-[40px] pt-[30px] pb-8 px-4">
         <TouchableOpacity className="pb-6" onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#fff" />
+          <Back name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         <View className="items-center ">
           <Image
@@ -177,7 +183,7 @@ const handleDeleteAccount = async () => {
           onPress={() => navigation.navigate("UserProfileScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <Ionicons name="person" size={24} color="#fff" />
+            <User name="person" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"
@@ -209,7 +215,7 @@ const handleDeleteAccount = async () => {
           onPress={() => navigation.navigate("HelpSupportScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <Ionicons name="help-circle" size={24} color="#fff" />
+            <Help name="help-circle" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"
@@ -225,7 +231,7 @@ const handleDeleteAccount = async () => {
           onPress={() => navigation.navigate("LegalScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <MaterialIcons name="gavel" size={24} color="#fff" />
+            <Award name="gavel" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-faintDark"
@@ -241,7 +247,7 @@ const handleDeleteAccount = async () => {
           onPress={handleLogout}
         >
           <View className="bg-[#FF0000] p-2 rounded-full mr-4">
-            <Ionicons name="log-out-outline" size={24} color="#fff" />
+            <Logout name="log-out-outline" size={24} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-[#FF0000]"
@@ -256,7 +262,7 @@ const handleDeleteAccount = async () => {
   onPress={() => setShowDeleteModal(true)}
 >
   <View className="bg-[#FF0000] p-2 rounded-full mr-4">
-    <Ionicons name="trash" size={24} color="#fff" />
+    <Trash name="trash" size={24} color="#fff" />
   </View>
   <Text
     className="flex-1 text-[16px] text-[#FF0000]"

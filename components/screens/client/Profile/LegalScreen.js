@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import File from "../../../../assets/icon/file.svg"
+import Back from "../../../../assets/icon/back.svg"
+import Right from "../../../../assets/icon/right.svg"
+import Shield from "../../../../assets/icon/shield.svg"
 
 export default function LegalScreen() {
   const navigation = useNavigation();
@@ -17,7 +21,7 @@ export default function LegalScreen() {
       <StatusBar backgroundColor="#EB278D" barStyle="light-content" />
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Back name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}
@@ -34,7 +38,7 @@ export default function LegalScreen() {
           onPress={() => navigation.navigate("PrivacyPolicyScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <Octicons name="shield" size={22} color="#fff" />
+            <Shield name="shield" size={22} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-black"
@@ -42,14 +46,14 @@ export default function LegalScreen() {
           >
             Privacy Policy
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         <TouchableOpacity
           className="flex-row items-center bg-white rounded-xl px-4 py-4 mb-4 shadow-sm border border-[#F6F6F6]"
           onPress={() => navigation.navigate("TermsOfUseScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <MaterialIcons name="description" size={22} color="#fff" />
+            <File name="description" size={22} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-black"
@@ -57,14 +61,14 @@ export default function LegalScreen() {
           >
             Terms of Use
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         <TouchableOpacity
           className="flex-row items-center bg-white rounded-xl px-4 py-4 mb-4 shadow-sm border border-[#F6F6F6]"
           onPress={() => navigation.navigate("ServiceLevelAgreementScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <MaterialIcons name="description" size={22} color="#fff" />
+            <File name="description" size={22} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-black"
@@ -72,14 +76,14 @@ export default function LegalScreen() {
           >
             Service Level Agreement
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
         <TouchableOpacity
           className="flex-row items-center bg-white rounded-xl px-4 py-4 mb-4 shadow-sm border border-[#F6F6F6]"
           onPress={() => navigation.navigate("DataProtectionAgreementScreen")}
         >
           <View className="bg-primary p-2 rounded-full mr-4">
-            <MaterialIcons name="description" size={22} color="#fff" />
+            <File name="description" size={22} color="#fff" />
           </View>
           <Text
             className="flex-1 text-[16px] text-black"
@@ -87,7 +91,7 @@ export default function LegalScreen() {
           >
             Data Protection Agreement
           </Text>
-          <Ionicons name="chevron-forward" size={20} color="#A9A9A9" />
+          <Right name="chevron-forward" size={20} color="#A9A9A9" />
         </TouchableOpacity>
       </View>
     </View>

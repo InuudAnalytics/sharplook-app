@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Shield from "../../../../assets/icon/shield.svg"
+import Data from "../../../../assets/icon/database.svg"
+import Mail from "../../../../assets/icon/mail.svg"
 
 export default function PrivacyPolicyScreen() {
   const navigation = useNavigation();
@@ -19,7 +22,7 @@ export default function PrivacyPolicyScreen() {
       {/* Header */}
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Shield name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}
@@ -47,7 +50,7 @@ export default function PrivacyPolicyScreen() {
           </Text>
           <View className="flex-row items-center">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <Ionicons name="shield-checkmark" size={20} color="#EB278D" />
+              <Shield name="shield-checkmark" size={20} color="#EB278D" />
             </View>
             <Text
               className="text-[14px] text-gray-700 flex-1"
@@ -93,7 +96,7 @@ export default function PrivacyPolicyScreen() {
         <View className="rounded-2xl p-4 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-2">
             <View className="bg-[#eb278c25] p-2 rounded-[20px] mr-3">
-              <Ionicons name="business" size={18} color="#EB278D" />
+              <Data name="business" size={18} color="#EB278D" />
             </View>
             <Text
               className="text-[16px] text-gray-800"
@@ -518,7 +521,7 @@ export default function PrivacyPolicyScreen() {
         <View className="rounded-2xl p-6 mb-6 border border-[#eb278c35]">
           <View className="flex-row items-center mb-3">
             <View className="bg-primary p-2 rounded-[20px] mr-3">
-              <Ionicons name="mail" size={20} color="#fff" />
+              <Mail name="mail" size={20} color="#fff" />
             </View>
             <Text
               className="text-[16px] text-gray-800"

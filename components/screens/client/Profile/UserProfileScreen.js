@@ -10,6 +10,8 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import OutlineTextInput from "../../../reusuableComponents/inputFields/OutlineTextInput";
 import { useAuth } from "../../../../context/AuthContext";
+import Back from "../../../../assets/icon/back.svg"
+import Edit from "../../../../assets/icon/edit.svg"
 
 const UserProfileScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -24,14 +26,14 @@ const UserProfileScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           className="absolute left-4 top-[40px]"
         >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
+          <Back name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         {/* Edit Icon */}
         <TouchableOpacity
           className="absolute right-4 top-[40px]"
           onPress={() => navigation.navigate("EditProfileScreen")}
         >
-          <Feather name="edit" size={24} color="#fff" />
+          <Edit name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         {/* Avatar */}
         <Image

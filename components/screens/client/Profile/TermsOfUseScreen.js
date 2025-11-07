@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import File from "../../../../assets/icon/file.svg"
+import Back from "../../../../assets/icon/back.svg"
 
 export default function TermsOfUseScreen() {
   const navigation = useNavigation();
@@ -19,7 +21,7 @@ export default function TermsOfUseScreen() {
       {/* Header */}
       <View className="pt-[40px] pb-4 px-4 flex-row items-center shadow-sm mb-5 justify-between bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#201E1F" />
+          <Back name="chevron-back" size={24} color="#201E1F" />
         </TouchableOpacity>
         <Text
           style={{ fontFamily: "latoBold" }}

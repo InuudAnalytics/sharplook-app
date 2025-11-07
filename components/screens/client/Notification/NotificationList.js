@@ -14,7 +14,9 @@ import EmptySVG from "../../../../assets/img/empty.svg";
 import {
   getRelativeTime,
   groupNotificationsByAge,
+
 } from "../../../reusuableComponents/RelativeTime";
+import Bell from "../../../../assets/icon/bell.svg"
 
 export default function NotificationList() {
   const navigation = useNavigation();
@@ -206,7 +208,7 @@ export default function NotificationList() {
               {item.icon ? (
                 item.icon
               ) : (
-                <Ionicons
+                <Bell
                   name="notifications-outline"
                   size={28}
                   color="#EB278D"
