@@ -1,147 +1,37 @@
 {
   "expo": {
-    "name": "sharplook",
-    "slug": "sharplook",
-    "version": "1.1.4",
+    "name": "my-expo-app",
+    "slug": "my-expo-app",
+    "version": "1.0.0",
+
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+
+    "experiments": {
+      "tsconfigPaths": true
+    },
+
+    "plugins": [],
+
     "orientation": "portrait",
-    "icon": "./assets/icon/app-icon.png",
+    "icon": "./assets/icon.png",
+
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+
     "splash": {
-      "image": "./assets/icon/sharplooklogo.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "sharplook",
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.techtrove.sharplook",
-      "buildNumber": "19",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "This app uses the camera to allow users to upload profile and service photos.",
-        "NSFaceIDUsageDescription": "This app uses Face ID to provide secure biometric authentication for login.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone to allow audio input for communication and video recording.",
-        "NSLocationWhenInUseUsageDescription": "This app uses your location to provide nearby services and improve recommendations.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location in the background to keep features updated.",
-        "NSPhotoLibraryUsageDescription": "This app uses your photo library to allow you to select and upload profile and service photos.",
-        "NSPhotoLibraryAddUsageDescription": "This app saves photos to your library for profile pictures and service images.",
-        "UIBackgroundModes": [
-          "remote-notification"
-        ],
-        "NSUserNotificationsUsageDescription": "This app uses notifications to keep you updated about bookings, messages, and important updates.",
-        "NSUserNotificationAlertStyle": "alert"
-      },
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true,
-      "package": "com.techtrove.sharplook",
-      "permissions": [
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "WAKE_LOCK",
-        "CAMERA",
-        "RECORD_AUDIO",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "INTERNET",
-        "POST_NOTIFICATIONS",
-        "RECEIVE_NOTIFICATIONS",
-        "SYSTEM_ALERT_WINDOW",
-        "ACCESS_NETWORK_STATE"
-      ],
-      "versionCode": 48,
-      "useNextNotificationsApi": true,
-      "googleServicesFile": "./google-services.json",
-      "allowBackup": true,
-      "foregroundServiceType": [
-        "dataSync",
-        "location"
-      ],
-      "notification": {
-        "icon": "./assets/icon/app-icon.png",
-        "color": "#EB278D",
-        "androidMode": "default",
-        "androidCollapsedTitle": "New Notification"
-      }
-    },
-    "web": {
-      "bundler": "metro"
-    },
-    "plugins": [
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/Poppins-Thin.ttf",
-            "./assets/fonts/Poppins-Light.ttf",
-            "./assets/fonts/Poppins-ExtraLight.ttf",
-            "./assets/fonts/Poppins-Regular.ttf",
-            "./assets/fonts/Poppins-Medium.ttf",
-            "./assets/fonts/Poppins-Bold.ttf",
-            "./assets/fonts/Poppins-SemiBold.ttf",
-            "./assets/fonts/Poppins-ExtraBold.ttf",
-            "./assets/fonts/Lato-Regular.ttf",
-            "./assets/fonts/Lato-Bold.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Entypo.ttf",
-            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf"
-          ]
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon/app-icon.png"
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0"
-          },
-          "ios": {
-            "useFrameworks": "static",
-            "useModularHeaders": true
-          }
-        }
-      ],
-      [
-        "@react-native-firebase/app"
-      ],
-      [
-        "@react-native-firebase/messaging",
-        {
-          "defaultNotificationColor": "#ffffff",
-          "defaultNotificationIcon": "./assets/icon/app-icon.png"
-        }
-      ]
-    ],
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/704cc27d-eb97-43a5-bdca-aa813b95f72c"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "4855c8a1-23d5-469c-b6b5-ce1671057df8"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       }
     }
   }
